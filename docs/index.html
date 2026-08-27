@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="Turn a Hindi PDF into an audiobook. Reads each page aloud in your device's own Hindi voice, highlighting the sentence being spoken.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Suno">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1218">
+<title>Suno Hindi Reader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EFEEE8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#EFEEE8; --surface:#F8F7F3; --surface-2:#E4E2D8; --raised:#FFFFFF;
+  --ink:#171E2E; --ink-2:#4A5568; --ink-3:#7C8595;
+  --line:#D7D4C8; --line-2:#C4C0B1;
+  --accent:#B26A12; --accent-soft:#F3E1C3; --accent-ink:#7A4708;
+  --indigo:#2F4A7A;
+  --danger:#9B2C2C; --danger-soft:#F6DEDE;
+  --ok:#2F6B4F;
+  --shadow:0 1px 2px rgba(23,30,46,.06), 0 8px 24px -12px rgba(23,30,46,.18);
+  --ui:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --dev:"Noto Serif Devanagari","Nirmala UI",serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1218; --surface:#161A22; --surface-2:#212734; --raised:#1B202A;
+    --ink:#E9E7DE; --ink-2:#A9B1BF; --ink-3:#76808F;
+    --line:#2A3140; --line-2:#39414F;
+    --accent:#E3A344; --accent-soft:#3B2C14; --accent-ink:#F4C982;
+    --indigo:#89A8DD;
+    --danger:#E88C8C; --danger-soft:#3A1F1F;
+    --ok:#7FC4A0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1218; --surface:#161A22; --surface-2:#212734; --raised:#1B202A;
+  --ink:#E9E7DE; --ink-2:#A9B1BF; --ink-3:#76808F;
+  --line:#2A3140; --line-2:#39414F;
+  --accent:#E3A344; --accent-soft:#3B2C14; --accent-ink:#F4C982;
+  --indigo:#89A8DD;
+  --danger:#E88C8C; --danger-soft:#3A1F1F;
+  --ok:#7FC4A0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--ui); font-size:16px; line-height:1.5;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+
+.app{display:flex; flex-direction:column; min-height:100vh; min-height:100dvh}
+
+/* ---------- top bar ---------- */
+.bar{
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px calc(10px) 14px;
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.mark{
+  font-family:var(--dev); font-weight:600; font-size:19px; line-height:1;
+  color:var(--accent); letter-spacing:.01em; flex:0 0 auto;
+}
+.docname{
+  flex:1 1 auto; min-width:0; font-size:13px; color:var(--ink-2);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.iconbtn{
+  flex:0 0 auto; width:38px; height:38px; border-radius:10px;
+  display:grid; place-items:center; color:var(--ink-2);
+  border:1px solid transparent;
+}
+.iconbtn:hover{background:var(--surface-2); color:var(--ink)}
+.iconbtn svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+
+/* ---------- start screen ---------- */
+.start{
+  flex:1; display:flex; flex-direction:column; justify-content:center;
+  gap:22px; padding:32px 20px 48px; max-width:640px; margin:0 auto; width:100%;
+}
+.hero-dev{
+  font-family:var(--dev); font-size:clamp(30px,9vw,44px); font-weight:600;
+  line-height:1.35; margin:0; text-wrap:balance;
+}
+.hero-dev .lit{
+  background:var(--accent-soft);
+  box-shadow:inset 0 3px 0 0 var(--accent);
+  -webkit-box-decoration-break:clone; box-decoration-break:clone;
+  padding:0 4px; border-radius:3px;
+}
+.hero-sub{margin:20px 0 0; color:var(--ink-2); font-size:15px; max-width:46ch}
+.dropzone{
+  border:1.5px dashed var(--line-2); border-radius:var(--r);
+  background:var(--surface); padding:26px 20px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  transition:border-color .15s, background .15s;
+}
+.dropzone.over{border-color:var(--accent); background:var(--accent-soft)}
+.btn{
+  display:inline-flex; align-items:center; gap:9px;
+  background:var(--ink); color:var(--paper);
+  padding:13px 22px; border-radius:11px; font-weight:600; font-size:15px;
+}
+.btn:hover{opacity:.88}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn.ghost{background:var(--surface-2); color:var(--ink)}
+.hint{font-size:12.5px; color:var(--ink-3)}
+.facts{display:flex; flex-direction:column; gap:9px; margin:0; padding:0; list-style:none}
+.facts li{display:flex; gap:10px; font-size:13.5px; color:var(--ink-2); align-items:flex-start}
+.facts b{color:var(--ink); font-weight:600}
+.facts .n{
+  font-family:var(--mono); font-size:11px; color:var(--accent);
+  border:1px solid var(--line-2); border-radius:5px;
+  padding:1px 5px; flex:0 0 auto; margin-top:1px;
+}
+
+/* ---------- notices ---------- */
+.notice{
+  margin:0 14px 12px; padding:11px 13px; border-radius:11px;
+  font-size:13px; line-height:1.45; display:flex; gap:9px; align-items:flex-start;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--ink-2);
+}
+.notice.warn{background:var(--danger-soft); border-color:transparent; color:var(--ink)}
+.notice b{color:var(--ink)}
+.notice code{font-family:var(--mono); font-size:12px}
+.notice .x{margin-left:auto; flex:0 0 auto; color:var(--ink-3); font-size:18px; line-height:1; padding:0 2px}
+
+/* ---------- reader ---------- */
+.reader{flex:1; width:100%; max-width:720px; margin:0 auto; padding:6px 14px 200px}
+.pagehead{
+  display:flex; align-items:baseline; gap:10px; padding:12px 2px 10px;
+  border-bottom:1px solid var(--line); margin-bottom:18px;
+}
+.pagehead .lbl{
+  font-family:var(--mono); font-size:11px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.pagehead .num{font-family:var(--mono); font-size:13px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.pagehead .spacer{flex:1}
+.pagehead .count{font-family:var(--mono); font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+
+.leaf{font-family:var(--dev); font-size:var(--tsize,20px); line-height:2.0; margin:0}
+.para{margin:0 0 1.15em}
+.para:last-child{margin-bottom:0}
+.sent{
+  display:inline; border-radius:4px; padding:1px 2px;
+  -webkit-box-decoration-break:clone; box-decoration-break:clone;
+  cursor:pointer; transition:background .12s;
+}
+.sent:hover{background:var(--surface-2)}
+.sent.on{
+  background:var(--accent-soft);
+  box-shadow:inset 0 2px 0 0 var(--accent);
+  color:var(--ink);
+}
+.sent.done{color:var(--ink-3)}
+.sent .w.on{
+  background:var(--accent); color:var(--paper); border-radius:3px;
+  box-shadow:none;
+}
+.empty{
+  font-family:var(--ui); font-size:14px; color:var(--ink-2);
+  background:var(--surface); border:1px dashed var(--line-2);
+  border-radius:var(--r); padding:20px; text-align:center;
+}
+.empty .dev{font-family:var(--dev); font-size:17px; color:var(--ink); display:block; margin-bottom:6px}
+
+/* ---------- player ---------- */
+.player{
+  position:fixed; left:0; right:0; bottom:0; z-index:30;
+  background:color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter:saturate(1.4) blur(12px);
+  border-top:1px solid var(--line);
+  padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+  box-shadow:var(--shadow);
+}
+.track{height:3px; border-radius:2px; background:var(--surface-2); overflow:hidden; margin-bottom:12px}
+.track i{display:block; height:100%; background:var(--accent); width:0%; transition:width .25s}
+.rowmain{display:flex; align-items:center; justify-content:center; gap:14px}
+.rowmain .side{display:flex; align-items:center; gap:2px}
+.ctl{
+  width:46px; height:46px; border-radius:12px; display:grid; place-items:center;
+  color:var(--ink-2);
+}
+.ctl:hover{background:var(--surface-2); color:var(--ink)}
+.ctl:disabled{opacity:.3; cursor:default}
+.ctl:disabled:hover{background:none; color:var(--ink-2)}
+.ctl svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.play{
+  width:62px; height:62px; border-radius:50%; background:var(--ink); color:var(--paper);
+  display:grid; place-items:center; flex:0 0 auto;
+}
+.play:hover{opacity:.88; background:var(--ink)}
+.play svg{width:26px;height:26px;stroke:currentColor;fill:currentColor;stroke-width:0}
+.rowmeta{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; margin-top:9px;
+}
+.pagejump{display:flex; align-items:center; gap:4px}
+.pagejump .pnum{
+  font-family:var(--mono); font-size:12.5px; color:var(--ink-2);
+  font-variant-numeric:tabular-nums; min-width:74px; text-align:center;
+}
+.chip{
+  font-family:var(--mono); font-size:11px; letter-spacing:.05em;
+  color:var(--ink-2); border:1px solid var(--line-2);
+  padding:5px 9px; border-radius:8px; text-transform:uppercase;
+}
+.chip:hover{border-color:var(--ink-3); color:var(--ink)}
+.chip.live{color:var(--accent-ink); border-color:var(--accent); background:var(--accent-soft)}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed; inset:0; background:rgba(10,12,16,.42); z-index:40; opacity:0; pointer-events:none; transition:opacity .18s}
+.scrim.open{opacity:1; pointer-events:auto}
+.sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:50;
+  background:var(--raised); border-top:1px solid var(--line);
+  border-radius:20px 20px 0 0; box-shadow:var(--shadow);
+  padding:8px 18px calc(24px + env(safe-area-inset-bottom));
+  max-height:86vh; overflow-y:auto;
+  transform:translateY(102%); transition:transform .22s ease;
+  max-width:720px; margin:0 auto;
+}
+.sheet.open{transform:translateY(0)}
+.grab{width:40px; height:4px; border-radius:2px; background:var(--line-2); margin:8px auto 16px}
+.sheet h2{
+  font-size:12px; text-transform:uppercase; letter-spacing:.1em;
+  font-family:var(--mono); font-weight:500; color:var(--ink-3);
+  margin:22px 0 10px; padding-bottom:7px; border-bottom:1px solid var(--line);
+}
+.sheet h2:first-of-type{margin-top:4px}
+.field{display:flex; flex-direction:column; gap:7px; margin-bottom:16px}
+.field .top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+.field label{font-size:14px; font-weight:600}
+.field .val{font-family:var(--mono); font-size:12.5px; color:var(--accent-ink); font-variant-numeric:tabular-nums}
+.field .sub{font-size:12.5px; color:var(--ink-3)}
+select{
+  width:100%; font:inherit; font-size:14.5px; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line-2);
+  border-radius:10px; padding:11px 12px; appearance:none;
+}
+input[type=range]{
+  width:100%; appearance:none; background:transparent; height:26px; margin:0;
+}
+input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:2px; background:var(--surface-2)}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none; width:22px; height:22px; border-radius:50%;
+  background:var(--accent); margin-top:-9px; border:3px solid var(--raised);
+  box-shadow:0 1px 4px rgba(0,0,0,.25);
+}
+input[type=range]::-moz-range-track{height:4px; border-radius:2px; background:var(--surface-2)}
+input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; background:var(--accent); border:3px solid var(--raised)}
+.toggle{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:12px 0; border-bottom:1px solid var(--line);
+}
+.toggle:last-child{border-bottom:0}
+.toggle .tx{display:flex; flex-direction:column; gap:2px}
+.toggle .tx span{font-size:14px; font-weight:600}
+.toggle .tx small{font-size:12.5px; color:var(--ink-3); font-weight:400}
+.sw{
+  width:46px; height:27px; border-radius:14px; background:var(--surface-2);
+  position:relative; flex:0 0 auto; transition:background .15s;
+  border:1px solid var(--line-2);
+}
+.sw::after{
+  content:""; position:absolute; top:2px; left:2px; width:21px; height:21px;
+  border-radius:50%; background:var(--raised); box-shadow:0 1px 3px rgba(0,0,0,.3);
+  transition:transform .15s;
+}
+.sw[aria-pressed="true"]{background:var(--accent); border-color:var(--accent)}
+.sw[aria-pressed="true"]::after{transform:translateX(19px)}
+.sheetbtns{display:flex; gap:10px; margin-top:20px}
+.sheetbtns .btn{flex:1; justify-content:center}
+.help{font-size:13px; color:var(--ink-2); line-height:1.6}
+.help ol{margin:8px 0 0; padding-left:20px}
+.help li{margin-bottom:5px}
+.help b{color:var(--ink)}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important; animation:none !important}
+}
+@media (min-width:700px){
+  .leaf{line-height:2.05}
+}
+.hidden{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="mark">सुनो</div>
+    <div class="docname" id="docname">Hindi PDF to audiobook</div>
+    <button class="iconbtn hidden" id="btnLib" title="Open another PDF" aria-label="Open another PDF">
+      <svg viewBox="0 0 24 24"><path d="M4 7h5l2 2h9v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7z"/><path d="M2 7V5a2 2 0 0 1 2-2h4l2 2"/></svg>
+    </button>
+    <button class="iconbtn" id="btnSet" title="Voice and reading settings" aria-label="Voice and reading settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <div id="notices"></div>
+
+  <!-- start screen -->
+  <section class="start" id="start">
+    <div>
+      <h1 class="hero-dev">अपनी हिंदी PDF को <span class="lit">सुनिए</span>, पढ़िए नहीं।</h1>
+      <p class="hero-sub">Open a Hindi PDF and it becomes an audiobook. Your phone's own Hindi voice reads each page aloud while the sentence being spoken stays highlighted.</p>
+    </div>
+
+    <div class="dropzone" id="drop">
+      <button class="btn" id="btnPick">
+        <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Choose a PDF
+      </button>
+      <div class="hint">The file is read on your phone. Nothing is uploaded anywhere.</div>
+    </div>
+
+    <ul class="facts">
+      <li><span class="n">1</span><span><b>Text PDFs only.</b> Works with documents that were generated by a computer. A scan or a photo of paper has no text to read.</span></li>
+      <li><span class="n">2</span><span><b>Needs a Hindi voice.</b> Android: Settings &rarr; General management &rarr; Text-to-speech &rarr; install Hindi under Google Speech Services. Tap the gear above to check what you have.</span></li>
+      <li><span class="n">3</span><span><b>Add to home screen.</b> Chrome menu &rarr; Add to Home screen, and it opens like a normal app.</span></li>
+    </ul>
+  </section>
+
+  <!-- reader -->
+  <main class="reader hidden" id="reader">
+    <div class="pagehead">
+      <span class="lbl">Page</span>
+      <span class="num" id="phNum">1</span>
+      <span class="spacer"></span>
+      <span class="count" id="phCount"></span>
+    </div>
+    <div id="leaf" class="leaf"></div>
+  </main>
+
+  <!-- player -->
+  <div class="player hidden" id="player">
+    <div class="track"><i id="prog"></i></div>
+    <div class="rowmain">
+      <div class="side">
+        <button class="ctl" id="btnPrevS" title="Previous sentence" aria-label="Previous sentence">
+          <svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16z"/><path d="M5 19V5"/></svg>
+        </button>
+      </div>
+      <button class="play" id="btnPlay" aria-label="Play">
+        <svg id="icoPlay" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
+        <svg id="icoPause" class="hidden" viewBox="0 0 24 24"><path d="M7 4h4v16H7zM13 4h4v16h-4z"/></svg>
+      </button>
+      <div class="side">
+        <button class="ctl" id="btnNextS" title="Next sentence" aria-label="Next sentence">
+          <svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="rowmeta">
+      <div class="pagejump">
+        <button class="ctl" id="btnPrevP" title="Previous page" aria-label="Previous page">
+          <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <span class="pnum" id="pnum">1 / 1</span>
+        <button class="ctl" id="btnNextP" title="Next page" aria-label="Next page">
+          <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+      <button class="chip" id="chipRate">1.0&times;</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Settings">
+  <div class="grab"></div>
+
+  <h2>Voice</h2>
+  <div class="field">
+    <div class="top"><label for="selVoice">Hindi voice</label></div>
+    <select id="selVoice"></select>
+    <div class="sub" id="voiceSub"></div>
+  </div>
+
+  <div class="field">
+    <div class="top"><label for="rngRate">Speed</label><span class="val" id="valRate">1.00&times;</span></div>
+    <input type="range" id="rngRate" min="0.5" max="2" step="0.05" value="1">
+  </div>
+  <div class="field">
+    <div class="top"><label for="rngPitch">Pitch</label><span class="val" id="valPitch">1.00</span></div>
+    <input type="range" id="rngPitch" min="0.5" max="1.5" step="0.05" value="1">
+  </div>
+
+  <h2>Reading</h2>
+  <div class="field">
+    <div class="top"><label for="rngSize">Text size</label><span class="val" id="valSize">20 px</span></div>
+    <input type="range" id="rngSize" min="16" max="34" step="1" value="20">
+  </div>
+  <div class="toggle">
+    <div class="tx"><span>Continue to next page</span><small>Keep reading when a page ends</small></div>
+    <button class="sw" id="swAuto" aria-pressed="true" aria-label="Continue to next page"></button>
+  </div>
+  <div class="toggle">
+    <div class="tx"><span>Highlight each word</span><small>Turn off if the highlight jumps around</small></div>
+    <button class="sw" id="swWord" aria-pressed="true" aria-label="Highlight each word"></button>
+  </div>
+  <div class="toggle">
+    <div class="tx"><span>Keep screen awake</span><small>Stops the screen sleeping while reading</small></div>
+    <button class="sw" id="swWake" aria-pressed="true" aria-label="Keep screen awake"></button>
+  </div>
+
+  <h2>No Hindi voice?</h2>
+  <div class="help">
+    Android reads Hindi through Google Speech Services. If the list above has no Hindi voice:
+    <ol>
+      <li>Open <b>Settings</b> and search for <b>Text-to-speech</b>.</li>
+      <li>Set the engine to <b>Google Speech Services</b>, open its settings, and install the <b>Hindi</b> voice data.</li>
+      <li>Come back here and reopen this panel.</li>
+    </ol>
+  </div>
+
+  <div class="sheetbtns">
+    <button class="btn ghost" id="btnTest">Test voice</button>
+    <button class="btn" id="btnClose">Done</button>
+  </div>
+</div>
+
+<input type="file" id="file" accept="application/pdf,.pdf" class="sr">
+
+<script src="pdf.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* pdf.js does its parsing in a worker; it is served next to this page. */
+pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
+
+/* ------------------------------------------------------------------ *
+ * State
+ * ------------------------------------------------------------------ */
+var S = {
+  pdf: null,
+  key: "",            // storage key for this document
+  numPages: 0,
+  page: 1,
+  sentences: [],      // sentences of the current page
+  paras: [],          // paragraph index for each sentence
+  idx: 0,             // active sentence index
+  playing: false,
+  cache: {},          // pageNo -> text
+  voices: [],
+  voice: null,
+  rate: 1, pitch: 1, size: 20,
+  autoPage: true, wordHi: true, wakeOn: true,
+  wakeLock: null,
+  utter: null,
+  stopping: false,
+  badChars: 0, allChars: 0
+};
+
+var $ = function(id){ return document.getElementById(id); };
+var el = {
+  start:$("start"), reader:$("reader"), player:$("player"), leaf:$("leaf"),
+  notices:$("notices"), docname:$("docname"), file:$("file"), drop:$("drop"),
+  phNum:$("phNum"), phCount:$("phCount"), pnum:$("pnum"), prog:$("prog"),
+  play:$("btnPlay"), icoPlay:$("icoPlay"), icoPause:$("icoPause"),
+  sheet:$("sheet"), scrim:$("scrim"), selVoice:$("selVoice"), voiceSub:$("voiceSub"),
+  rngRate:$("rngRate"), valRate:$("valRate"), rngPitch:$("rngPitch"), valPitch:$("valPitch"),
+  rngSize:$("rngSize"), valSize:$("valSize"),
+  swAuto:$("swAuto"), swWord:$("swWord"), swWake:$("swWake"),
+  chipRate:$("chipRate"), btnLib:$("btnLib")
+};
+
+/* ------------------------------------------------------------------ *
+ * Settings persistence (per-viewer convenience only)
+ * ------------------------------------------------------------------ */
+function store(k, v){
+  try { if (v === undefined) return localStorage.getItem(k);
+        localStorage.setItem(k, v); } catch(e){}
+  return null;
+}
+function loadPrefs(){
+  var r = parseFloat(store("suno.rate")); if (r >= 0.5 && r <= 2) S.rate = r;
+  var p = parseFloat(store("suno.pitch")); if (p >= 0.5 && p <= 1.5) S.pitch = p;
+  var s = parseInt(store("suno.size"), 10); if (s >= 16 && s <= 34) S.size = s;
+  if (store("suno.auto") === "0") S.autoPage = false;
+  if (store("suno.word") === "0") S.wordHi = false;
+  if (store("suno.wake") === "0") S.wakeOn = false;
+}
+function savePrefs(){
+  store("suno.rate", S.rate); store("suno.pitch", S.pitch); store("suno.size", S.size);
+  store("suno.auto", S.autoPage ? "1" : "0");
+  store("suno.word", S.wordHi ? "1" : "0");
+  store("suno.wake", S.wakeOn ? "1" : "0");
+  if (S.voice) store("suno.voice", S.voice.voiceURI);
+}
+
+/* ------------------------------------------------------------------ *
+ * Notices
+ * ------------------------------------------------------------------ */
+function notice(id, html, kind){
+  var old = document.getElementById("nt-" + id);
+  if (old) old.remove();
+  var d = document.createElement("div");
+  d.className = "notice" + (kind === "warn" ? " warn" : "");
+  d.id = "nt-" + id;
+  d.innerHTML = html + '<button class="x" aria-label="Dismiss">&times;</button>';
+  d.querySelector(".x").onclick = function(){ d.remove(); };
+  el.notices.appendChild(d);
+}
+function clearNotice(id){
+  var n = document.getElementById("nt-" + id);
+  if (n) n.remove();
+}
+
+/* ------------------------------------------------------------------ *
+ * Text extraction + Hindi sentence splitting
+ * ------------------------------------------------------------------ */
+var CTRL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/g;
+var COMBINING = /^[\u0900-\u0903\u093A-\u094F\u0951-\u0957\u0962\u0963\u200C\u200D]/;
+var PARA = "\u0001";
+
+// The 30th percentile of the line gaps is the ordinary line step even on a
+// short page where half the gaps happen to be paragraph gaps.
+function lineStep(a){
+  if (!a.length) return 0;
+  var b = a.slice().sort(function(x, y){ return x - y; });
+  return b[Math.floor(b.length * 0.3)];
+}
+
+// Rebuild lines from the text layer. Devanagari conjuncts are often split
+// across several text items, so a space is only inserted when the gap is
+// wide relative to the type size and the break is not inside a cluster.
+function extractText(tc){
+  var raw = tc.items, items = [], i;
+  for (i = 0; i < raw.length; i++){
+    if (typeof raw[i].str === "string" && raw[i].transform) items.push(raw[i]);
+  }
+  if (!items.length) return "";
+
+  var lines = [], cur = null, prevY = null;
+  for (i = 0; i < items.length; i++){
+    var it = items[i], y = it.transform[5], x = it.transform[4];
+    var size = it.height || Math.abs(it.transform[3]) || 10;
+    if (!cur || (prevY !== null && Math.abs(y - prevY) > 1)){
+      cur = { y: y, size: size, text: "", endX: null };
+      lines.push(cur);
+    }
+    if (cur.endX !== null && it.str){
+      var wide = (x - cur.endX) > (cur.size || 10) * 0.22;
+      if (wide && !/[\s\u094D]$/.test(cur.text) && !/^\s/.test(it.str) && !COMBINING.test(it.str)){
+        cur.text += " ";
+      }
+    }
+    cur.text += it.str;
+    cur.endX = x + (it.width || 0);
+    if (size > cur.size) cur.size = size;
+    prevY = y;
+  }
+
+  // A vertical gap noticeably bigger than the usual line step is a
+  // paragraph break; anything smaller is just a wrapped line.
+  var gaps = [];
+  for (i = 1; i < lines.length; i++){
+    var g = lines[i - 1].y - lines[i].y;
+    if (g > 0.5) gaps.push(g);
+  }
+  var step = lineStep(gaps);
+  var out = "";
+  for (i = 0; i < lines.length; i++){
+    if (i > 0){
+      var prevTxt = lines[i - 1].text, nextTxt = lines[i].text;
+      if (/\u094D$/.test(prevTxt) || COMBINING.test(nextTxt)){
+        // baseline jitter split a single cluster: glue it back, never break
+      } else {
+        var d = lines[i - 1].y - lines[i].y;
+        out += (step && d > step * 1.45) ? "\n\n" : "\n";
+      }
+    }
+    out += lines[i].text;
+  }
+  return out;
+}
+
+function tidy(raw){
+  var bad = (raw.match(CTRL) || []).length;
+  S.badChars += bad;
+  S.allChars += raw.length;
+
+  var t = raw.replace(CTRL, "").replace(/\r/g, "");
+  t = t.replace(/[^\S\n]+/g, " ");            // collapse spaces, keep newlines
+  t = t.replace(/ *\n *\n[\s\n]*/g, PARA);    // blank line = paragraph break
+  t = t.replace(/ *\n */g, " ");              // single newline = soft wrap
+  t = t.split(PARA).map(function(x){ return x.trim(); })
+       .filter(Boolean).join("\n\n");
+  t = t.replace(/\u094D +/g, "\u094D");       // no space after a halant
+  t = t.replace(/ +([।॥,;:?!])/g, "$1");      // no space before punctuation
+  t = t.replace(/ {2,}/g, " ");
+  return t.trim();
+}
+
+var MAXLEN = 220;
+
+function splitLong(s){
+  if (s.length <= MAXLEN) return [s];
+  var parts = [], rest = s;
+  while (rest.length > MAXLEN){
+    var cut = -1;
+    var window_ = rest.slice(0, MAXLEN);
+    var marks = [",", "،", ";", ":", "—", "-"];
+    for (var m = 0; m < marks.length; m++){
+      var at = window_.lastIndexOf(marks[m]);
+      if (at > cut) cut = at;
+    }
+    if (cut < MAXLEN * 0.4) cut = window_.lastIndexOf(" ");
+    if (cut < 1) cut = MAXLEN - 1;
+    parts.push(rest.slice(0, cut + 1).trim());
+    rest = rest.slice(cut + 1).trim();
+  }
+  if (rest) parts.push(rest);
+  return parts.filter(Boolean);
+}
+
+function sentencesOf(text){
+  var out = [], paras = [];
+  if (!text) return { list: out, paras: paras };
+  var blocks = text.split(/\n{2,}/);
+  for (var b = 0; b < blocks.length; b++){
+    var block = blocks[b].trim();
+    if (!block) continue;
+    // Devanagari danda and double danda are the real sentence enders in
+    // Hindi; western punctuation shows up in mixed documents.
+    var chunks = block.split(/(?<=[।॥])[ ]*|(?<=[\.\?\!])[ ]+/);
+    for (var c = 0; c < chunks.length; c++){
+      var s = chunks[c].trim();
+      if (!s) continue;
+      var sub = splitLong(s);
+      for (var k = 0; k < sub.length; k++) if (sub[k]){ out.push(sub[k]); paras.push(b); }
+    }
+  }
+  return { list: out, paras: paras };
+}
+
+function devScore(t){
+  if (!t) return 0;
+  var dev = (t.match(/[ऀ-ॿ]/g) || []).length;
+  var letters = (t.match(/[^\s\d\p{P}]/gu) || []).length;
+  return letters ? dev / letters : 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Loading a PDF
+ * ------------------------------------------------------------------ */
+function openFile(f){
+  if (!f) return;
+  if (f.type && f.type.indexOf("pdf") === -1 && !/\.pdf$/i.test(f.name)){
+    notice("bad", "<span><b>That is not a PDF.</b> Pick a file ending in .pdf.</span>", "warn");
+    return;
+  }
+  clearNotice("bad"); clearNotice("scan"); clearNotice("garble"); clearNotice("err");
+  el.docname.textContent = f.name;
+  var fr = new FileReader();
+  fr.onerror = function(){
+    notice("err", "<span><b>Could not read the file.</b> Try picking it again.</span>", "warn");
+  };
+  fr.onload = function(){
+    loadBuffer(new Uint8Array(fr.result), f.name, f.size);
+  };
+  fr.readAsArrayBuffer(f);
+}
+
+function loadBuffer(data, name, size){
+  notice("load", "<span>Opening <b>" + escapeHtml(name) + "</b>&hellip;</span>");
+  pdfjsLib.getDocument({
+    data: data,
+    // Hindi PDFs frequently ship subset fonts with no standard mapping;
+    // pdf.js only needs the text layer here, so keep it light.
+    isEvalSupported: false,
+    useSystemFonts: false
+  }).promise.then(function(pdf){
+    clearNotice("load");
+    S.pdf = pdf;
+    S.numPages = pdf.numPages;
+    S.cache = {};
+    S.badChars = 0; S.allChars = 0;
+    S.key = "suno.pos." + name.replace(/[^\w.-]/g, "_") + "." + (size || 0);
+    el.start.classList.add("hidden");
+    el.reader.classList.remove("hidden");
+    el.player.classList.remove("hidden");
+    el.btnLib.classList.remove("hidden");
+    el.phCount.textContent = S.numPages + " pages";
+
+    var saved = store(S.key);
+    var startPage = 1, startIdx = 0;
+    if (saved){
+      var bits = String(saved).split(":");
+      var sp = parseInt(bits[0], 10), si = parseInt(bits[1], 10);
+      if (sp >= 1 && sp <= S.numPages){ startPage = sp; startIdx = si > 0 ? si : 0; }
+    }
+    return gotoPage(startPage, startIdx).then(function(){
+      if (startPage > 1) {
+        notice("resume", "<span>Picked up where you stopped, on page <b>" + startPage + "</b>.</span>");
+        setTimeout(function(){ clearNotice("resume"); }, 6000);
+      }
+      checkQuality();
+    });
+  }).catch(function(err){
+    clearNotice("load");
+    console.error(err);
+    var msg = (err && err.name === "PasswordException")
+      ? "<span><b>This PDF is password protected.</b> Remove the password and open it again.</span>"
+      : "<span><b>This PDF could not be opened.</b> It may be damaged. Try another file.</span>";
+    notice("err", msg, "warn");
+  });
+}
+
+function checkQuality(){
+  // Look at the first few pages to tell a scan apart from a text PDF.
+  var pages = [], p;
+  for (p = 1; p <= Math.min(3, S.numPages); p++) pages.push(p);
+  Promise.all(pages.map(textOf)).then(function(all){
+    var joined = all.join(" ").trim();
+    var brokenMap = S.allChars > 200 && (S.badChars / S.allChars) > 0.02;
+    if (joined.replace(/\s/g, "").length < 20){
+      notice("scan",
+        "<span><b>No readable text in this PDF.</b> It looks like a scan or photos of pages. " +
+        "This app reads generated PDFs, where you can select the text in a normal PDF viewer.</span>", "warn");
+    } else if (devScore(joined) < 0.25){
+      notice("garble",
+        "<span><b>Very little Devanagari came out.</b> The PDF's font may not carry a proper Unicode map, " +
+        "so the text can read as nonsense. Re-exporting the document as PDF usually fixes it.</span>", "warn");
+    } else if (brokenMap){
+      notice("garble",
+        "<span><b>Some letters are missing.</b> This PDF's font maps a number of Hindi marks to nothing, " +
+        "so matras drop out and words will be read wrong. Re-export the original document as PDF " +
+        "(in Word: File &rarr; Save as &rarr; PDF) and open that copy instead.</span>", "warn");
+    }
+  });
+}
+
+function textOf(pageNo){
+  if (S.cache[pageNo] !== undefined) return Promise.resolve(S.cache[pageNo]);
+  return S.pdf.getPage(pageNo).then(function(page){
+    return page.getTextContent();
+  }).then(function(tc){
+    var t = tidy(extractText(tc));
+    S.cache[pageNo] = t;
+    return t;
+  }).catch(function(e){
+    console.error("page " + pageNo, e);
+    S.cache[pageNo] = "";
+    return "";
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Rendering a page
+ * ------------------------------------------------------------------ */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+  });
+}
+
+function gotoPage(n, startIdx){
+  if (n < 1 || n > S.numPages) return Promise.resolve();
+  S.page = n;
+  el.phNum.textContent = n;
+  el.pnum.textContent = n + " / " + S.numPages;
+  el.leaf.textContent = "";
+  return textOf(n).then(function(t){
+    var parsed = sentencesOf(t);
+    S.sentences = parsed.list;
+    S.paras = parsed.paras;
+    S.idx = Math.min(startIdx || 0, Math.max(0, S.sentences.length - 1));
+    renderLeaf();
+    updateProgress();
+    savePos();
+    if (n < S.numPages) textOf(n + 1); // warm the next page
+  });
+}
+
+function renderLeaf(){
+  if (!S.sentences.length){
+    el.leaf.innerHTML = '<div class="empty"><span class="dev">इस पेज पर कोई टेक्स्ट नहीं मिला।</span>' +
+      'Nothing to read on this page. It may be an image, a chart, or a blank page.</div>';
+    return;
+  }
+  var html = "", last = null;
+  for (var i = 0; i < S.sentences.length; i++){
+    var pi = S.paras[i];
+    if (pi !== last){
+      if (last !== null) html += "</p>";
+      html += '<p class="para">';
+      last = pi;
+    }
+    html += '<span class="sent" data-i="' + i + '">' + escapeHtml(S.sentences[i]) + "</span> ";
+  }
+  if (last !== null) html += "</p>";
+  el.leaf.innerHTML = html;
+  markActive(false);
+}
+
+function markActive(scroll){
+  var nodes = el.leaf.querySelectorAll(".sent");
+  for (var i = 0; i < nodes.length; i++){
+    nodes[i].classList.toggle("on", i === S.idx);
+    nodes[i].classList.toggle("done", i < S.idx);
+    if (i !== S.idx && nodes[i].dataset.split === "1"){
+      nodes[i].textContent = S.sentences[i];
+      delete nodes[i].dataset.split;
+    }
+  }
+  var cur = nodes[S.idx];
+  if (cur && scroll){
+    var r = cur.getBoundingClientRect();
+    if (r.top < 90 || r.bottom > window.innerHeight - 190){
+      cur.scrollIntoView({block:"center", behavior:"smooth"});
+    }
+  }
+}
+
+// Break the active sentence into word spans so the boundary event can
+// light up one word at a time.
+function splitWords(i){
+  var node = el.leaf.querySelector('.sent[data-i="' + i + '"]');
+  if (!node || node.dataset.split === "1") return node;
+  var text = S.sentences[i], html = "", pos = 0;
+  var re = /\S+/g, m;
+  while ((m = re.exec(text)) !== null){
+    html += escapeHtml(text.slice(pos, m.index));
+    html += '<span class="w" data-s="' + m.index + '" data-e="' + (m.index + m[0].length) + '">' + escapeHtml(m[0]) + "</span>";
+    pos = m.index + m[0].length;
+  }
+  html += escapeHtml(text.slice(pos));
+  node.innerHTML = html;
+  node.dataset.split = "1";
+  return node;
+}
+
+function lightWord(node, charIndex){
+  if (!node) return;
+  var ws = node.querySelectorAll(".w");
+  for (var i = 0; i < ws.length; i++){
+    var s = +ws[i].dataset.s, e = +ws[i].dataset.e;
+    ws[i].classList.toggle("on", charIndex >= s && charIndex < e);
+  }
+}
+
+function updateButtons(){
+  $("btnPrevP").disabled = S.page <= 1;
+  $("btnNextP").disabled = S.page >= S.numPages;
+  $("btnPrevS").disabled = S.idx <= 0;
+  $("btnNextS").disabled = S.idx >= S.sentences.length - 1;
+}
+
+function updateProgress(){
+  var pct = 0;
+  if (S.numPages){
+    var within = S.sentences.length ? (S.idx / S.sentences.length) : 0;
+    pct = ((S.page - 1 + within) / S.numPages) * 100;
+  }
+  el.prog.style.width = Math.max(0, Math.min(100, pct)) + "%";
+  updateButtons();
+}
+
+function savePos(){
+  if (S.key) store(S.key, S.page + ":" + S.idx);
+}
+
+/* ------------------------------------------------------------------ *
+ * Speech
+ * ------------------------------------------------------------------ */
+var synth = window.speechSynthesis;
+
+function refreshVoices(){
+  if (!synth) return;
+  var all = synth.getVoices() || [];
+  var hi = [], rest = [];
+  for (var i = 0; i < all.length; i++){
+    (/^hi\b|^hi[-_]/i.test(all[i].lang) ? hi : rest).push(all[i]);
+  }
+  S.voices = hi.concat(rest);
+  var wanted = store("suno.voice");
+  var pick = null, j;
+  if (wanted) for (j = 0; j < S.voices.length; j++) if (S.voices[j].voiceURI === wanted) pick = S.voices[j];
+  if (!pick && hi.length) pick = hi[0];
+  if (!pick && S.voices.length) pick = null;   // let the engine choose by lang
+  S.voice = pick;
+
+  var html = '<option value="">Let Android choose a Hindi voice</option>';
+  for (j = 0; j < S.voices.length; j++){
+    var v = S.voices[j];
+    html += '<option value="' + escapeHtml(v.voiceURI) + '"' + (pick === v ? " selected" : "") + ">" +
+            escapeHtml(v.name) + " (" + escapeHtml(v.lang) + ")</option>";
+  }
+  el.selVoice.innerHTML = html;
+  el.voiceSub.textContent = hi.length
+    ? hi.length + (hi.length === 1 ? " Hindi voice found on this device." : " Hindi voices found on this device.")
+    : "No Hindi voice found on this device. See the steps below.";
+
+  if (!hi.length && all.length){
+    notice("novoice",
+      "<span><b>No Hindi voice on this phone.</b> It will read with a non-Hindi voice and sound wrong. " +
+      "Tap the gear for the two-minute fix.</span>", "warn");
+  } else {
+    clearNotice("novoice");
+  }
+}
+
+if (synth){
+  refreshVoices();
+  synth.addEventListener("voiceschanged", refreshVoices);
+}
+
+var keepAlive = null;
+function startKeepAlive(){
+  stopKeepAlive();
+  // Chrome stops speaking after roughly 15 seconds on some builds; a
+  // resume() on a speaking synth is harmless and keeps it going.
+  keepAlive = setInterval(function(){
+    if (S.playing && synth.speaking && !synth.paused) synth.resume();
+  }, 9000);
+}
+function stopKeepAlive(){ if (keepAlive){ clearInterval(keepAlive); keepAlive = null; } }
+
+function speakCurrent(){
+  if (!synth || !S.sentences.length) return;
+  var text = S.sentences[S.idx];
+  if (!text){ advance(); return; }
+
+  S.stopping = true;
+  synth.cancel();
+  S.stopping = false;
+
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = S.voice ? S.voice.lang : "hi-IN";
+  if (S.voice) u.voice = S.voice;
+  u.rate = S.rate;
+  u.pitch = S.pitch;
+
+  var node = null;
+  markActive(true);
+  if (S.wordHi){
+    node = splitWords(S.idx);
+    u.onboundary = function(ev){
+      if (ev.name && ev.name !== "word") return;
+      lightWord(node, ev.charIndex || 0);
+    };
+  }
+  u.onend = function(){
+    if (S.stopping) return;
+    advance();
+  };
+  u.onerror = function(ev){
+    if (S.stopping || !S.playing) return;
+    if (ev && (ev.error === "interrupted" || ev.error === "canceled")) return;
+    console.warn("speech error", ev && ev.error);
+    advance();
+  };
+  S.utter = u;
+  // A tiny delay lets cancel() settle on Android before the next utterance.
+  setTimeout(function(){ if (S.playing) synth.speak(u); }, 60);
+}
+
+function advance(){
+  if (!S.playing) return;
+  if (S.idx < S.sentences.length - 1){
+    S.idx++;
+    updateProgress(); savePos();
+    speakCurrent();
+    return;
+  }
+  if (S.autoPage && S.page < S.numPages){
+    gotoPage(S.page + 1, 0).then(function(){
+      if (!S.playing) return;
+      if (!S.sentences.length){ advance(); return; }
+      speakCurrent();
+    });
+    return;
+  }
+  stop();
+  if (S.page >= S.numPages) notice("done", "<span>Finished the last page.</span>");
+}
+
+function play(){
+  if (!S.sentences.length){
+    if (S.autoPage && S.page < S.numPages){ S.playing = true; setPlayIcon(); advance(); }
+    return;
+  }
+  S.playing = true;
+  setPlayIcon();
+  startKeepAlive();
+  requestWake();
+  speakCurrent();
+}
+
+function pause(){
+  S.playing = false;
+  S.stopping = true;
+  if (synth) synth.cancel();
+  S.stopping = false;
+  setPlayIcon();
+  stopKeepAlive();
+  releaseWake();
+  var cur = el.leaf.querySelector(".sent.on");
+  if (cur) lightWord(cur, -1);
+}
+
+function stop(){ pause(); }
+
+function setPlayIcon(){
+  el.icoPlay.classList.toggle("hidden", S.playing);
+  el.icoPause.classList.toggle("hidden", !S.playing);
+  el.play.setAttribute("aria-label", S.playing ? "Pause" : "Play");
+}
+
+function jump(i){
+  if (i < 0 || i >= S.sentences.length) return;
+  S.idx = i;
+  updateProgress(); savePos();
+  if (S.playing) speakCurrent(); else markActive(true);
+}
+
+/* ------------------------------------------------------------------ *
+ * Wake lock
+ * ------------------------------------------------------------------ */
+function requestWake(){
+  if (!S.wakeOn || !navigator.wakeLock || S.wakeLock) return;
+  navigator.wakeLock.request("screen").then(function(l){
+    S.wakeLock = l;
+    l.addEventListener("release", function(){ S.wakeLock = null; });
+  }).catch(function(){});
+}
+function releaseWake(){
+  if (S.wakeLock){ try { S.wakeLock.release(); } catch(e){} S.wakeLock = null; }
+}
+document.addEventListener("visibilitychange", function(){
+  if (document.visibilityState === "visible" && S.playing) requestWake();
+});
+
+/* ------------------------------------------------------------------ *
+ * Wiring
+ * ------------------------------------------------------------------ */
+$("btnPick").onclick = function(){ el.file.click(); };
+el.btnLib.onclick = function(){ el.file.click(); };
+el.file.onchange = function(){
+  var f = el.file.files && el.file.files[0];
+  pause();
+  openFile(f);
+  el.file.value = "";
+};
+
+["dragenter","dragover"].forEach(function(ev){
+  el.drop.addEventListener(ev, function(e){ e.preventDefault(); el.drop.classList.add("over"); });
+});
+["dragleave","drop"].forEach(function(ev){
+  el.drop.addEventListener(ev, function(e){ e.preventDefault(); el.drop.classList.remove("over"); });
+});
+el.drop.addEventListener("drop", function(e){
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) openFile(e.dataTransfer.files[0]);
+});
+
+el.play.onclick = function(){ S.playing ? pause() : play(); };
+$("btnPrevS").onclick = function(){ jump(S.idx - 1); };
+$("btnNextS").onclick = function(){ jump(S.idx + 1); };
+$("btnPrevP").onclick = function(){
+  var was = S.playing; pause();
+  gotoPage(S.page - 1, 0).then(function(){ if (was) play(); });
+};
+$("btnNextP").onclick = function(){
+  var was = S.playing; pause();
+  gotoPage(S.page + 1, 0).then(function(){ if (was) play(); });
+};
+el.leaf.addEventListener("click", function(e){
+  var t = e.target.closest ? e.target.closest(".sent") : null;
+  if (t) jump(+t.dataset.i);
+});
+
+var RATES = [0.75, 0.9, 1, 1.15, 1.3, 1.5, 1.75];
+el.chipRate.onclick = function(){
+  var i = 0, best = 0, diff = 9;
+  for (i = 0; i < RATES.length; i++){
+    var d = Math.abs(RATES[i] - S.rate);
+    if (d < diff){ diff = d; best = i; }
+  }
+  setRate(RATES[(best + 1) % RATES.length]);
+  if (S.playing) speakCurrent();
+};
+
+function setRate(r){
+  S.rate = r;
+  el.rngRate.value = r;
+  el.valRate.textContent = r.toFixed(2) + "×";
+  el.chipRate.textContent = (Math.round(r * 100) / 100) + "×";
+  el.chipRate.classList.toggle("live", Math.abs(r - 1) > 0.001);
+  savePrefs();
+}
+function setPitch(p){
+  S.pitch = p; el.rngPitch.value = p; el.valPitch.textContent = p.toFixed(2); savePrefs();
+}
+function setSize(s){
+  S.size = s; el.rngSize.value = s; el.valSize.textContent = s + " px";
+  el.leaf.style.setProperty("--tsize", s + "px"); savePrefs();
+}
+
+el.rngRate.oninput = function(){ setRate(parseFloat(this.value)); };
+el.rngRate.onchange = function(){ if (S.playing) speakCurrent(); };
+el.rngPitch.oninput = function(){ setPitch(parseFloat(this.value)); };
+el.rngPitch.onchange = function(){ if (S.playing) speakCurrent(); };
+el.rngSize.oninput = function(){ setSize(parseInt(this.value, 10)); };
+
+el.selVoice.onchange = function(){
+  var uri = this.value;
+  S.voice = null;
+  for (var i = 0; i < S.voices.length; i++) if (S.voices[i].voiceURI === uri) S.voice = S.voices[i];
+  store("suno.voice", uri);
+  if (S.playing) speakCurrent();
+};
+
+function toggle(btn, key, apply){
+  btn.onclick = function(){
+    var on = btn.getAttribute("aria-pressed") !== "true";
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    apply(on);
+    savePrefs();
+  };
+}
+toggle(el.swAuto, "auto", function(on){ S.autoPage = on; });
+toggle(el.swWord, "word", function(on){
+  S.wordHi = on;
+  if (!on){
+    var cur = el.leaf.querySelector(".sent.on");
+    if (cur && cur.dataset.split === "1"){ cur.textContent = S.sentences[S.idx]; delete cur.dataset.split; }
+  }
+});
+toggle(el.swWake, "wake", function(on){
+  S.wakeOn = on;
+  if (on && S.playing) requestWake(); else releaseWake();
+});
+
+function openSheet(){
+  refreshVoices();
+  el.sheet.classList.add("open"); el.scrim.classList.add("open");
+}
+function closeSheet(){
+  el.sheet.classList.remove("open"); el.scrim.classList.remove("open");
+}
+$("btnSet").onclick = openSheet;
+$("btnClose").onclick = closeSheet;
+el.scrim.onclick = closeSheet;
+$("btnTest").onclick = function(){
+  if (!synth) return;
+  synth.cancel();
+  var u = new SpeechSynthesisUtterance("नमस्ते। यह आपकी हिंदी आवाज़ का नमूना है।");
+  u.lang = S.voice ? S.voice.lang : "hi-IN";
+  if (S.voice) u.voice = S.voice;
+  u.rate = S.rate; u.pitch = S.pitch;
+  synth.speak(u);
+};
+
+document.addEventListener("keydown", function(e){
+  if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.code === "Space"){ e.preventDefault(); S.playing ? pause() : play(); }
+  else if (e.key === "ArrowRight") jump(S.idx + 1);
+  else if (e.key === "ArrowLeft") jump(S.idx - 1);
+  else if (e.key === "Escape") closeSheet();
+});
+
+window.addEventListener("beforeunload", function(){ if (synth) synth.cancel(); });
+
+/* boot */
+loadPrefs();
+setRate(S.rate); setPitch(S.pitch); setSize(S.size);
+el.swAuto.setAttribute("aria-pressed", S.autoPage ? "true" : "false");
+el.swWord.setAttribute("aria-pressed", S.wordHi ? "true" : "false");
+el.swWake.setAttribute("aria-pressed", S.wakeOn ? "true" : "false");
+setPlayIcon();
+
+if (!synth){
+  notice("nosynth",
+    "<span><b>This browser cannot speak.</b> Open the app in Chrome on your Android phone.</span>", "warn");
+}
+
+window.__suno = S;   // for testing
+})();
+</script>
+</body>
+</html>
