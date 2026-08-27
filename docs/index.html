@@ -144,6 +144,10 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
 .notice.warn{background:var(--danger-soft); border-color:transparent; color:var(--ink)}
 .notice b{color:var(--ink)}
 .notice code{font-family:var(--mono); font-size:12px}
+.notice .link{
+  color:var(--accent-ink); text-decoration:underline; text-underline-offset:2px;
+  font:inherit; font-weight:600; padding:0; white-space:nowrap;
+}
 .notice .x{margin-left:auto; flex:0 0 auto; color:var(--ink-3); font-size:18px; line-height:1; padding:0 2px}
 
 /* ---------- reader ---------- */
@@ -194,6 +198,7 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
   font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
   color:var(--accent-ink); background:var(--accent-soft); border-radius:5px; padding:2px 6px;
 }
+.ahead{font-family:var(--mono); font-size:10.5px; color:var(--ink-3); font-variant-numeric:tabular-nums}
 
 /* ---------- player ---------- */
 .player{
@@ -360,6 +365,7 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
       <span class="lbl">Page</span>
       <span class="num" id="phNum">1</span>
       <span class="tag hidden" id="phOcr">OCR</span>
+      <span class="ahead hidden" id="phAhead"></span>
       <span class="spacer"></span>
       <span class="count" id="phCount"></span>
     </div>
@@ -493,6 +499,7 @@ var S = {
   utter: null,
   stopping: false,
   badChars: 0, allChars: 0,
+  emptyRun: 0,        // consecutive pages with nothing readable
   ocrOn: true,        // recognise text in scanned pages
   ocrEng: false,      // also load the English model
   ocrPages: {}        // pages whose text came from OCR
@@ -502,7 +509,7 @@ var $ = function(id){ return document.getElementById(id); };
 var el = {
   start:$("start"), reader:$("reader"), player:$("player"), leaf:$("leaf"),
   notices:$("notices"), docname:$("docname"), file:$("file"), drop:$("drop"),
-  phNum:$("phNum"), phCount:$("phCount"), pnum:$("pnum"), prog:$("prog"), phOcr:$("phOcr"),
+  phNum:$("phNum"), phCount:$("phCount"), pnum:$("pnum"), prog:$("prog"), phOcr:$("phOcr"), phAhead:$("phAhead"),
   play:$("btnPlay"), icoPlay:$("icoPlay"), icoPause:$("icoPause"),
   sheet:$("sheet"), scrim:$("scrim"), selVoice:$("selVoice"), voiceSub:$("voiceSub"),
   rngRate:$("rngRate"), valRate:$("valRate"), rngPitch:$("rngPitch"), valPitch:$("valPitch"),
@@ -744,8 +751,16 @@ function loadBuffer(data, name, size){
     checkQuality();
     return gotoPage(startPage, startIdx).then(function(){
       if (startPage > 1) {
-        notice("resume", "<span>Picked up where you stopped, on page <b>" + startPage + "</b>.</span>");
-        setTimeout(function(){ clearNotice("resume"); }, 6000);
+        notice("resume",
+          "<span>Opened at page <b>" + startPage + "</b>, where you stopped last time. " +
+          '<button class="link" id="btnRestart">Start from page 1</button></span>');
+        var restart = document.getElementById("btnRestart");
+        if (restart) restart.onclick = function(){
+          clearNotice("resume");
+          clearPos();
+          pause();
+          gotoPage(1, 0);
+        };
       }
     });
   }).catch(function(err){
@@ -810,23 +825,29 @@ function textOf(pageNo){
 /* ------------------------------------------------------------------ *
  * OCR for scanned pages
  *
- * A PDF made of page images has no text layer. Tesseract reads the
- * pixels instead. Everything is served from this site, so nothing is
- * sent anywhere; the first page recognised downloads the Hindi and
- * English models once.
+ * A PDF made of page images has no text layer, so Tesseract reads the
+ * pixels instead. Recognition costs real seconds on a phone and tuning
+ * barely moves it, so the strategy is to hide the wait: pages are
+ * recognised ahead while you listen to the current one, and every result
+ * is kept so a page is never recognised twice.
  * ------------------------------------------------------------------ */
 var OCR_BASE = "tess/";
+var OCR_AHEAD = 3;              // pages kept recognised ahead of you
+var OCR_WIDTH = 1400;           // wider than this costs time and buys nothing
+var OCR_MIN_CONFIDENCE = 40;    // below this a "line" is a rule or a smudge
 
-var OCR = { worker: null, loading: null, jobs: {}, failed: false };
+// Tesseract can also emit hOCR, TSV, box files and debug images. None of
+// them are used here.
+var OCR_OUTPUT = {
+  text: true, blocks: true,
+  hocr: false, tsv: false, box: false, unlv: false, osd: false, pdf: false,
+  imageColor: false, imageGrey: false, imageBinary: false, debug: false
+};
+
+var OCR = { worker: null, loading: null, failed: false, jobs: {} };
+var Q = { list: [], busy: false, current: 0 };
 
 function ocrAvailable(){ return !!OCR_BASE && !OCR.failed; }
-
-function resetOcr(){
-  var w = OCR.worker;
-  OCR.worker = null; OCR.loading = null; OCR.jobs = {}; OCR.failed = false;
-  S.ocrPages = {};
-  if (w && w.terminate) { try { w.terminate(); } catch (e) {} }
-}
 
 function loadScript(src){
   return new Promise(function(resolve, reject){
@@ -838,7 +859,7 @@ function loadScript(src){
   });
 }
 
-function ocrWorker(onProgress){
+function ocrWorker(){
   if (OCR.worker) return Promise.resolve(OCR.worker);
   if (OCR.loading) return OCR.loading;
   OCR.loading = Promise.resolve()
@@ -853,7 +874,7 @@ function ocrWorker(onProgress){
         workerPath: OCR_BASE + "worker.min.js",
         corePath: OCR_BASE,
         langPath: OCR_BASE,
-        logger: function(m){ if (onProgress) onProgress(m); }
+        logger: function(m){ onOcrProgress(m); }
       });
     })
     .then(function(w){
@@ -870,12 +891,52 @@ function ocrWorker(onProgress){
   return OCR.loading;
 }
 
-// Draw the page at a size Tesseract can actually read. Below roughly
-// 1500px wide, Devanagari matras start disappearing.
-function pageToCanvas(pageNo, targetWidth){
+/* ---------------- storing what has already been recognised ---------- */
+
+function ocrKey(pageNo){
+  return S.key ? S.key.replace("suno.pos.", "suno.ocr.") + "." + pageNo : null;
+}
+function readStoredOcr(pageNo){
+  var k = ocrKey(pageNo);
+  if (!k) return null;
+  try { return localStorage.getItem(k); } catch (e) { return null; }
+}
+function writeStoredOcr(pageNo, text){
+  var k = ocrKey(pageNo);
+  if (!k) return;
+  // A full book of recognised text is a few hundred KB. If the browser
+  // refuses it, carry on: the page is still readable this session.
+  try { localStorage.setItem(k, text); } catch (e) {}
+}
+function forgetStoredOcr(){
+  if (!S.key) return;
+  var prefix = S.key.replace("suno.pos.", "suno.ocr.") + ".";
+  try {
+    var doomed = [], i;
+    for (i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      if (k && k.indexOf(prefix) === 0) doomed.push(k);
+    }
+    for (i = 0; i < doomed.length; i++) localStorage.removeItem(doomed[i]);
+  } catch (e) {}
+}
+
+// Pull anything recognised in an earlier session back into memory.
+function adoptStoredOcr(pageNo){
+  if (S.ocrPages[pageNo]) return true;
+  var stored = readStoredOcr(pageNo);
+  if (stored === null) return false;
+  S.cache[pageNo] = stored;
+  S.ocrPages[pageNo] = true;
+  return true;
+}
+
+/* ---------------- rendering and recognising one page ---------------- */
+
+function pageToCanvas(pageNo){
   return S.pdf.getPage(pageNo).then(function(page){
     var base = page.getViewport({ scale: 1 });
-    var scale = Math.max(1, Math.min(4, targetWidth / base.width));
+    var scale = Math.max(1, Math.min(4, OCR_WIDTH / base.width));
     var vp = page.getViewport({ scale: scale });
     var canvas = document.createElement("canvas");
     canvas.width = Math.floor(vp.width);
@@ -888,10 +949,95 @@ function pageToCanvas(pageNo, targetWidth){
   });
 }
 
-// Tesseract reports a confidence per line. Anything it barely recognised
-// is a page rule, a bullet, or a half-cut line, and reading it aloud is
-// worse than skipping it.
-var OCR_MIN_CONFIDENCE = 40;
+function recognisePage(pageNo){
+  return ocrWorker().then(function(w){
+    return pageToCanvas(pageNo).then(function(canvas){
+      return w.recognize(canvas, {}, OCR_OUTPUT);
+    });
+  }).then(function(res){
+    var text = tidyOcr(ocrLines(res && res.data));
+    S.cache[pageNo] = text;
+    S.ocrPages[pageNo] = true;
+    writeStoredOcr(pageNo, text);
+    return text;
+  });
+}
+
+/* ---------------- the queue ----------------------------------------- */
+
+// The page you are looking at always jumps the queue; after that the
+// nearest page ahead of you wins.
+function rank(pageNo){
+  if (pageNo === S.page) return -1;
+  return pageNo > S.page ? (pageNo - S.page) : (1000 + (S.page - pageNo));
+}
+
+function queueOcr(pageNo){
+  if (!ocrAvailable() || pageNo < 1 || pageNo > S.numPages) return Promise.resolve(null);
+  if (adoptStoredOcr(pageNo)) return Promise.resolve(S.cache[pageNo]);
+  if (OCR.jobs[pageNo]) return OCR.jobs[pageNo].promise;
+
+  var job = {};
+  job.promise = new Promise(function(resolve, reject){
+    job.resolve = resolve;
+    job.reject = reject;
+  });
+  OCR.jobs[pageNo] = job;
+  Q.list.push(pageNo);
+  pump();
+  return job.promise;
+}
+
+function pump(){
+  if (Q.busy || !Q.list.length) return;
+  Q.list.sort(function(a, b){ return rank(a) - rank(b); });
+  var pageNo = Q.list.shift();
+  var job = OCR.jobs[pageNo];
+  if (!job){ pump(); return; }
+
+  Q.busy = true;
+  Q.current = pageNo;
+  recognisePage(pageNo).then(function(text){
+    job.resolve(text);
+  }, function(err){
+    console.error("ocr failed on page " + pageNo, err);
+    job.reject(err);
+  }).then(function(){
+    delete OCR.jobs[pageNo];
+    Q.busy = false;
+    Q.current = 0;
+    showAhead();
+    pump();
+  });
+}
+
+// Keep a few pages ready in front of you, so the only wait is the first.
+function ocrAhead(from){
+  if (!ocrAvailable() || !S.ocrOn) return;
+  var wanted = 0, n;
+  for (n = from + 1; n <= S.numPages && wanted < OCR_AHEAD; n++){
+    if (adoptStoredOcr(n)) { wanted++; continue; }
+    (function(page){
+      textOf(page).then(function(t){
+        if (t.replace(/\s/g, "").length >= 20) return;   // has a text layer
+        queueOcr(page).catch(function(){});
+      });
+    })(n);
+    wanted++;
+  }
+}
+
+function showAhead(){
+  var ready = 0, n;
+  for (n = S.page + 1; n <= S.numPages; n++){
+    if (!S.ocrPages[n]) break;
+    ready++;
+  }
+  el.phAhead.textContent = ready ? "+" + ready + " ready" : "";
+  el.phAhead.classList.toggle("hidden", !ready || !S.ocrPages[S.page]);
+}
+
+/* ---------------- cleaning up what Tesseract returns ----------------- */
 
 function ocrLines(data){
   if (!data) return "";
@@ -951,84 +1097,59 @@ function tidyOcr(raw){
   return tidy(out.join("\n"));
 }
 
-function ocrPage(pageNo, onProgress){
-  if (S.ocrPages[pageNo] && S.cache[pageNo]) return Promise.resolve(S.cache[pageNo]);
-  if (OCR.jobs[pageNo]) return OCR.jobs[pageNo];
-
-  var job = ocrWorker(onProgress)
-    .then(function(w){
-      return pageToCanvas(pageNo, 1800).then(function(canvas){
-        return w.recognize(canvas);
-      });
-    })
-    .then(function(res){
-      var text = tidyOcr(ocrLines(res && res.data));
-      S.cache[pageNo] = text;
-      S.ocrPages[pageNo] = true;
-      delete OCR.jobs[pageNo];
-      return text;
-    })
-    .catch(function(err){
-      delete OCR.jobs[pageNo];
-      throw err;
-    });
-
-  OCR.jobs[pageNo] = job;
-  return job;
-}
-
-// Recognise the page after this one while the current one is being read,
-// so the wait only ever happens once.
-function ocrAhead(pageNo){
-  var next = pageNo + 1;
-  if (!ocrAvailable() || !S.ocrOn || !OCR.worker || next > S.numPages) return;
-  if (S.ocrPages[next]) return;
-  textOf(next).then(function(t){
-    if (t.replace(/\s/g, "").length >= 20) return;
-    ocrPage(next).catch(function(){});
-  });
-}
+/* ---------------- what you see while it works ----------------------- */
 
 function ocrProgressUI(){
   el.leaf.innerHTML =
     '<div class="empty">' +
       '<span class="dev">इस पेज को पढ़ा जा रहा है…</span>' +
-      'Recognising the text on this page. <span class="ocrpct" id="ocrPct">0%</span>' +
+      'Recognising the text on this page. <span class="ocrpct" id="ocrPct">…</span>' +
       '<div class="ocrbar"><i id="ocrFill"></i></div>' +
-      '<div class="sub" id="ocrSub">First time only: downloading the Hindi recognition model, about 5 MB.</div>' +
+      '<div class="sub" id="ocrSub">Each page is only ever read once. While you listen to this one, ' +
+      'the next few are prepared in the background.</div>' +
     '</div>';
+}
+
+function onOcrProgress(m){
+  if (!m || Q.current !== S.page) return;
+  var pct = document.getElementById("ocrPct");
+  var fill = document.getElementById("ocrFill");
+  if (!pct || !fill) return;
+  if (m.status === "recognizing text"){
+    var p = Math.round((m.progress || 0) * 100);
+    pct.textContent = p + "%";
+    fill.style.width = p + "%";
+  } else if (m.status && m.status.indexOf("loading") === 0){
+    pct.textContent = "…";
+    var sub = document.getElementById("ocrSub");
+    if (sub && !OCR.worker) sub.textContent = "First time only: downloading the Hindi recognition model, about 5 MB.";
+  }
 }
 
 function startOcr(pageNo){
   ocrProgressUI();
-  var pct = document.getElementById("ocrPct");
-  var fill = document.getElementById("ocrFill");
-  var sub = document.getElementById("ocrSub");
-  var downloaded = !!OCR.worker;
-  if (downloaded && sub) sub.textContent = "This takes a few seconds per page.";
-
-  return ocrPage(pageNo, function(m){
-    if (S.page !== pageNo) return;
-    var p = Math.round((m.progress || 0) * 100);
-    if (m.status === "recognizing text"){
-      if (sub && !downloaded){ sub.textContent = "This takes a few seconds per page."; downloaded = true; }
-      if (pct) pct.textContent = p + "%";
-      if (fill) fill.style.width = p + "%";
-    } else if (pct && p === 0){
-      pct.textContent = "…";
-    }
-  }).then(function(text){
-    if (S.page !== pageNo) return;
+  ocrAhead(pageNo);
+  return queueOcr(pageNo).then(function(text){
+    if (S.page !== pageNo || text === null) return;
     showPageText(text);
+    showAhead();
     setTimeout(function(){ clearNotice("scan"); }, 4000);
-    ocrAhead(pageNo);
   }).catch(function(err){
-    console.error("ocr failed", err);
     if (S.page !== pageNo) return;
     el.leaf.innerHTML = '<div class="empty"><span class="dev">पढ़ा नहीं जा सका।</span>' +
       'The text on this page could not be recognised. Check your connection and try again.' +
       '<div class="sub">' + escapeHtml(err && err.message ? err.message : "unknown error") + '</div></div>';
   });
+}
+
+function resetOcr(){
+  var w = OCR.worker;
+  OCR.worker = null; OCR.loading = null; OCR.jobs = {}; OCR.failed = false;
+  Q.list = []; Q.busy = false; Q.current = 0;
+  for (var n in S.ocrPages) if (S.ocrPages[n]) delete S.cache[n];
+  S.ocrPages = {};
+  forgetStoredOcr();
+  if (w && w.terminate) { try { w.terminate(); } catch (e) {} }
 }
 
 /* ------------------------------------------------------------------ *
@@ -1049,6 +1170,7 @@ function showPageText(t, startIdx){
   renderLeaf();
   updateProgress();
   savePos();
+  showAhead();
 }
 
 function gotoPage(n, startIdx){
@@ -1058,9 +1180,17 @@ function gotoPage(n, startIdx){
   el.pnum.textContent = n + " / " + S.numPages;
   el.leaf.textContent = "";
   el.phOcr.classList.add("hidden");
+  el.phAhead.classList.add("hidden");
   return textOf(n).then(function(t){
     var noText = t.replace(/\s/g, "").length < 20;
-    if (noText && !S.ocrPages[n] && ocrAvailable() && S.ocrOn){
+    if (noText && ocrAvailable() && S.ocrOn){
+      // A page recognised earlier, in this session or a previous one,
+      // comes straight back with no wait.
+      if (adoptStoredOcr(n)){
+        showPageText(S.cache[n], startIdx);
+        ocrAhead(n);
+        return;
+      }
       S.sentences = []; S.paras = []; S.idx = 0;
       updateProgress(); savePos();
       return startOcr(n);
@@ -1162,7 +1292,13 @@ function updateProgress(){
 }
 
 function savePos(){
-  if (S.key) store(S.key, S.page + ":" + S.idx);
+  // A page we could not read is not a place to come back to.
+  if (S.key && S.sentences.length) store(S.key, S.page + ":" + S.idx);
+}
+
+function clearPos(){
+  if (!S.key) return;
+  try { localStorage.removeItem(S.key); } catch (e) {}
 }
 
 /* ------------------------------------------------------------------ *
@@ -1271,13 +1407,32 @@ function advance(){
   if (S.autoPage && S.page < S.numPages){
     gotoPage(S.page + 1, 0).then(function(){
       if (!S.playing) return;
-      if (!S.sentences.length){ advance(); return; }
+      if (!S.sentences.length){
+        // Without this, a document with no readable text anywhere runs to
+        // the last page in a fraction of a second.
+        S.emptyRun++;
+        if (S.emptyRun >= 3){
+          stop();
+          notice("blank",
+            "<span><b>Stopped on page " + S.page + ".</b> The last few pages had nothing " +
+            "readable on them. Turn on <b>Read scanned pages</b> in settings if this " +
+            "document is a scan.</span>", "warn");
+          return;
+        }
+        advance();
+        return;
+      }
+      S.emptyRun = 0;
       speakCurrent();
     });
     return;
   }
   stop();
-  if (S.page >= S.numPages) notice("done", "<span>Finished the last page.</span>");
+  if (S.page >= S.numPages){
+    // Finished. Opening it again should start at the beginning.
+    clearPos();
+    notice("done", "<span>Finished the last page. Next time this document opens at the start.</span>");
+  }
 }
 
 function play(){
@@ -1286,6 +1441,7 @@ function play(){
     return;
   }
   S.playing = true;
+  S.emptyRun = 0;
   setPlayIcon();
   startKeepAlive();
   requestWake();
