@@ -1,0 +1,12 @@
+{
+  "name": "suno-hindi-reader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read Hindi PDFs aloud in the browser",
+  "scripts": {
+    "build": "python3 build.py"
+  },
+  "dependencies": {
+    "pdfjs-dist": "3.11.174"
+  }
+}
