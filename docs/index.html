@@ -185,6 +185,15 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
   border-radius:var(--r); padding:20px; text-align:center;
 }
 .empty .dev{font-family:var(--dev); font-size:17px; color:var(--ink); display:block; margin-bottom:6px}
+.empty .sub{font-size:12.5px; color:var(--ink-3); margin-top:10px}
+.empty .btn{margin-top:14px}
+.ocrbar{height:4px; border-radius:2px; background:var(--surface-2); overflow:hidden; margin:14px auto 0; max-width:260px}
+.ocrbar i{display:block; height:100%; background:var(--accent); width:0%; transition:width .3s}
+.ocrpct{font-family:var(--mono); font-size:12.5px; color:var(--accent-ink); font-variant-numeric:tabular-nums}
+.tag{
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--accent-ink); background:var(--accent-soft); border-radius:5px; padding:2px 6px;
+}
 
 /* ---------- player ---------- */
 .player{
@@ -350,6 +359,7 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
     <div class="pagehead">
       <span class="lbl">Page</span>
       <span class="num" id="phNum">1</span>
+      <span class="tag hidden" id="phOcr">OCR</span>
       <span class="spacer"></span>
       <span class="count" id="phCount"></span>
     </div>
@@ -427,6 +437,14 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
     <div class="tx"><span>Keep screen awake</span><small>Stops the screen sleeping while reading</small></div>
     <button class="sw" id="swWake" aria-pressed="true" aria-label="Keep screen awake"></button>
   </div>
+  <div class="toggle" id="rowOcr">
+    <div class="tx"><span>Read scanned pages</span><small>Recognises the text in page images. First use downloads about 5 MB</small></div>
+    <button class="sw" id="swOcr" aria-pressed="true" aria-label="Read scanned pages"></button>
+  </div>
+  <div class="toggle" id="rowOcrEng">
+    <div class="tx"><span>Also recognise English</span><small>Turn on for mixed documents. It makes some Hindi words worse</small></div>
+    <button class="sw" id="swOcrEng" aria-pressed="false" aria-label="Also recognise English"></button>
+  </div>
 
   <h2>No Hindi voice?</h2>
   <div class="help">
@@ -474,19 +492,22 @@ var S = {
   wakeLock: null,
   utter: null,
   stopping: false,
-  badChars: 0, allChars: 0
+  badChars: 0, allChars: 0,
+  ocrOn: true,        // recognise text in scanned pages
+  ocrEng: false,      // also load the English model
+  ocrPages: {}        // pages whose text came from OCR
 };
 
 var $ = function(id){ return document.getElementById(id); };
 var el = {
   start:$("start"), reader:$("reader"), player:$("player"), leaf:$("leaf"),
   notices:$("notices"), docname:$("docname"), file:$("file"), drop:$("drop"),
-  phNum:$("phNum"), phCount:$("phCount"), pnum:$("pnum"), prog:$("prog"),
+  phNum:$("phNum"), phCount:$("phCount"), pnum:$("pnum"), prog:$("prog"), phOcr:$("phOcr"),
   play:$("btnPlay"), icoPlay:$("icoPlay"), icoPause:$("icoPause"),
   sheet:$("sheet"), scrim:$("scrim"), selVoice:$("selVoice"), voiceSub:$("voiceSub"),
   rngRate:$("rngRate"), valRate:$("valRate"), rngPitch:$("rngPitch"), valPitch:$("valPitch"),
   rngSize:$("rngSize"), valSize:$("valSize"),
-  swAuto:$("swAuto"), swWord:$("swWord"), swWake:$("swWake"),
+  swAuto:$("swAuto"), swWord:$("swWord"), swWake:$("swWake"), swOcr:$("swOcr"), swOcrEng:$("swOcrEng"),
   chipRate:$("chipRate"), btnLib:$("btnLib")
 };
 
@@ -505,12 +526,16 @@ function loadPrefs(){
   if (store("suno.auto") === "0") S.autoPage = false;
   if (store("suno.word") === "0") S.wordHi = false;
   if (store("suno.wake") === "0") S.wakeOn = false;
+  if (store("suno.ocr") === "0") S.ocrOn = false;
+  if (store("suno.ocreng") === "1") S.ocrEng = true;
 }
 function savePrefs(){
   store("suno.rate", S.rate); store("suno.pitch", S.pitch); store("suno.size", S.size);
   store("suno.auto", S.autoPage ? "1" : "0");
   store("suno.word", S.wordHi ? "1" : "0");
   store("suno.wake", S.wakeOn ? "1" : "0");
+  store("suno.ocr", S.ocrOn ? "1" : "0");
+  store("suno.ocreng", S.ocrEng ? "1" : "0");
   if (S.voice) store("suno.voice", S.voice.voiceURI);
 }
 
@@ -649,7 +674,7 @@ function sentencesOf(text){
     if (!block) continue;
     // Devanagari danda and double danda are the real sentence enders in
     // Hindi; western punctuation shows up in mixed documents.
-    var chunks = block.split(/(?<=[।॥])[ ]*|(?<=[\.\?\!])[ ]+/);
+    var chunks = block.split(/(?<=[।॥])[ ]*|(?<=[^\s\d][.?!])[ ]+/);
     for (var c = 0; c < chunks.length; c++){
       var s = chunks[c].trim();
       if (!s) continue;
@@ -716,12 +741,12 @@ function loadBuffer(data, name, size){
       var sp = parseInt(bits[0], 10), si = parseInt(bits[1], 10);
       if (sp >= 1 && sp <= S.numPages){ startPage = sp; startIdx = si > 0 ? si : 0; }
     }
+    checkQuality();
     return gotoPage(startPage, startIdx).then(function(){
       if (startPage > 1) {
         notice("resume", "<span>Picked up where you stopped, on page <b>" + startPage + "</b>.</span>");
         setTimeout(function(){ clearNotice("resume"); }, 6000);
       }
-      checkQuality();
     });
   }).catch(function(err){
     clearNotice("load");
@@ -741,9 +766,19 @@ function checkQuality(){
     var joined = all.join(" ").trim();
     var brokenMap = S.allChars > 200 && (S.badChars / S.allChars) > 0.02;
     if (joined.replace(/\s/g, "").length < 20){
-      notice("scan",
-        "<span><b>No readable text in this PDF.</b> It looks like a scan or photos of pages. " +
-        "This app reads generated PDFs, where you can select the text in a normal PDF viewer.</span>", "warn");
+      if (ocrAvailable() && S.ocrOn){
+        notice("scan",
+          "<span><b>This PDF is a scan.</b> There is no text in it, so each page is being " +
+          "recognised from the image. The first page takes longer while the models download.</span>");
+      } else if (ocrAvailable()){
+        notice("scan",
+          "<span><b>This PDF is a scan.</b> Turn on <b>Read scanned pages</b> in settings " +
+          "and it can recognise the text.</span>", "warn");
+      } else {
+        notice("scan",
+          "<span><b>No readable text in this PDF.</b> It looks like a scan or photos of pages, " +
+          "and this build cannot recognise images.</span>", "warn");
+      }
     } else if (devScore(joined) < 0.25){
       notice("garble",
         "<span><b>Very little Devanagari came out.</b> The PDF's font may not carry a proper Unicode map, " +
@@ -773,6 +808,230 @@ function textOf(pageNo){
 }
 
 /* ------------------------------------------------------------------ *
+ * OCR for scanned pages
+ *
+ * A PDF made of page images has no text layer. Tesseract reads the
+ * pixels instead. Everything is served from this site, so nothing is
+ * sent anywhere; the first page recognised downloads the Hindi and
+ * English models once.
+ * ------------------------------------------------------------------ */
+var OCR_BASE = "tess/";
+
+var OCR = { worker: null, loading: null, jobs: {}, failed: false };
+
+function ocrAvailable(){ return !!OCR_BASE && !OCR.failed; }
+
+function resetOcr(){
+  var w = OCR.worker;
+  OCR.worker = null; OCR.loading = null; OCR.jobs = {}; OCR.failed = false;
+  S.ocrPages = {};
+  if (w && w.terminate) { try { w.terminate(); } catch (e) {} }
+}
+
+function loadScript(src){
+  return new Promise(function(resolve, reject){
+    var t = document.createElement("script");
+    t.src = src;
+    t.onload = function(){ resolve(); };
+    t.onerror = function(){ reject(new Error("could not load " + src)); };
+    document.head.appendChild(t);
+  });
+}
+
+function ocrWorker(onProgress){
+  if (OCR.worker) return Promise.resolve(OCR.worker);
+  if (OCR.loading) return OCR.loading;
+  OCR.loading = Promise.resolve()
+    .then(function(){
+      return (typeof Tesseract !== "undefined")
+        ? null : loadScript(OCR_BASE + "tesseract.min.js");
+    })
+    .then(function(){
+      // oem 1 = the LSTM engine, which is all the bundled models need.
+      var langs = S.ocrEng ? ["hin", "eng"] : ["hin"];
+      return Tesseract.createWorker(langs, 1, {
+        workerPath: OCR_BASE + "worker.min.js",
+        corePath: OCR_BASE,
+        langPath: OCR_BASE,
+        logger: function(m){ if (onProgress) onProgress(m); }
+      });
+    })
+    .then(function(w){
+      // Page segmentation AUTO. The default treats the page as one block,
+      // which turns every bullet and box rule into junk characters.
+      return w.setParameters({ tessedit_pageseg_mode: "3" }).then(function(){ return w; });
+    })
+    .then(function(w){ OCR.worker = w; return w; })
+    .catch(function(err){
+      OCR.loading = null;
+      OCR.failed = true;
+      throw err;
+    });
+  return OCR.loading;
+}
+
+// Draw the page at a size Tesseract can actually read. Below roughly
+// 1500px wide, Devanagari matras start disappearing.
+function pageToCanvas(pageNo, targetWidth){
+  return S.pdf.getPage(pageNo).then(function(page){
+    var base = page.getViewport({ scale: 1 });
+    var scale = Math.max(1, Math.min(4, targetWidth / base.width));
+    var vp = page.getViewport({ scale: scale });
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.floor(vp.width);
+    canvas.height = Math.floor(vp.height);
+    var ctx = canvas.getContext("2d", { alpha: false });
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return page.render({ canvasContext: ctx, viewport: vp }).promise
+      .then(function(){ return canvas; });
+  });
+}
+
+// Tesseract reports a confidence per line. Anything it barely recognised
+// is a page rule, a bullet, or a half-cut line, and reading it aloud is
+// worse than skipping it.
+var OCR_MIN_CONFIDENCE = 40;
+
+function ocrLines(data){
+  if (!data) return "";
+  var src = data.lines || [], keep = [], i;
+  for (i = 0; i < src.length; i++){
+    if ((src[i].confidence || 0) < OCR_MIN_CONFIDENCE) continue;
+    var text = String(src[i].text || "").replace(/\s+$/, "");
+    if (!text) continue;
+    keep.push({ text: text, box: src[i].bbox });
+  }
+  if (!keep.length) return data.text || "";
+
+  // Same rule as the text layer: a vertical gap wider than the usual line
+  // step is a paragraph break, so headings do not run into the body text.
+  var gaps = [];
+  for (i = 1; i < keep.length; i++){
+    if (!keep[i].box || !keep[i - 1].box) continue;
+    var g = keep[i].box.y0 - keep[i - 1].box.y0;
+    if (g > 0.5) gaps.push(g);
+  }
+  var step = lineStep(gaps);
+
+  // A centred heading also gives itself away by starting far from the
+  // left margin, which catches the cases where the gap alone is marginal.
+  var right = 0;
+  for (i = 0; i < keep.length; i++) if (keep[i].box) right = Math.max(right, keep[i].box.x1);
+  var indentJump = right * 0.06;
+
+  var out = keep[0].text;
+  for (i = 1; i < keep.length; i++){
+    var a = keep[i - 1].box, b = keep[i].box, gapBreak = false, indentBreak = false;
+    if (a && b){
+      gapBreak = !!step && (b.y0 - a.y0) > step * 1.3;
+      indentBreak = indentJump > 0 && Math.abs(b.x0 - a.x0) > indentJump;
+    }
+    out += (gapBreak || indentBreak) ? "\n\n" : "\n";
+    out += keep[i].text;
+  }
+  return out;
+}
+
+function tidyOcr(raw){
+  var lines = String(raw || "").split("\n"), out = [], i;
+  for (i = 0; i < lines.length; i++){
+    var ln = lines[i].replace(/[_|]+/g, " ").replace(/[^\S\n]+/g, " ").trim();
+    if (!ln){ out.push(""); continue; }
+    var real = (ln.match(/[ऀ-ॿA-Za-z0-9]/g) || []).length;
+    if (real < 2) continue;                       // a stray bullet or rule
+    if (real / ln.length < 0.5) continue;         // mostly noise
+    // A leading short run with no Devanagari in it is a mis-read bullet.
+    ln = ln.replace(/^[^ऀ-ॿ]{1,4}(?=[ऀ-ॿ])/, "").trim();
+    ln = ln.replace(/^[^ऀ-ॿA-Za-z0-9(]{1,3}\s+/, "").trim();
+    // Headings printed inside a box come back wrapped in brackets.
+    if (ln.length < 44) ln = ln.replace(/^[(\[{]\s*(.+?)\s*[)\]}]$/, "$1").trim();
+    if (ln) out.push(ln);
+  }
+  return tidy(out.join("\n"));
+}
+
+function ocrPage(pageNo, onProgress){
+  if (S.ocrPages[pageNo] && S.cache[pageNo]) return Promise.resolve(S.cache[pageNo]);
+  if (OCR.jobs[pageNo]) return OCR.jobs[pageNo];
+
+  var job = ocrWorker(onProgress)
+    .then(function(w){
+      return pageToCanvas(pageNo, 1800).then(function(canvas){
+        return w.recognize(canvas);
+      });
+    })
+    .then(function(res){
+      var text = tidyOcr(ocrLines(res && res.data));
+      S.cache[pageNo] = text;
+      S.ocrPages[pageNo] = true;
+      delete OCR.jobs[pageNo];
+      return text;
+    })
+    .catch(function(err){
+      delete OCR.jobs[pageNo];
+      throw err;
+    });
+
+  OCR.jobs[pageNo] = job;
+  return job;
+}
+
+// Recognise the page after this one while the current one is being read,
+// so the wait only ever happens once.
+function ocrAhead(pageNo){
+  var next = pageNo + 1;
+  if (!ocrAvailable() || !S.ocrOn || !OCR.worker || next > S.numPages) return;
+  if (S.ocrPages[next]) return;
+  textOf(next).then(function(t){
+    if (t.replace(/\s/g, "").length >= 20) return;
+    ocrPage(next).catch(function(){});
+  });
+}
+
+function ocrProgressUI(){
+  el.leaf.innerHTML =
+    '<div class="empty">' +
+      '<span class="dev">इस पेज को पढ़ा जा रहा है…</span>' +
+      'Recognising the text on this page. <span class="ocrpct" id="ocrPct">0%</span>' +
+      '<div class="ocrbar"><i id="ocrFill"></i></div>' +
+      '<div class="sub" id="ocrSub">First time only: downloading the Hindi recognition model, about 5 MB.</div>' +
+    '</div>';
+}
+
+function startOcr(pageNo){
+  ocrProgressUI();
+  var pct = document.getElementById("ocrPct");
+  var fill = document.getElementById("ocrFill");
+  var sub = document.getElementById("ocrSub");
+  var downloaded = !!OCR.worker;
+  if (downloaded && sub) sub.textContent = "This takes a few seconds per page.";
+
+  return ocrPage(pageNo, function(m){
+    if (S.page !== pageNo) return;
+    var p = Math.round((m.progress || 0) * 100);
+    if (m.status === "recognizing text"){
+      if (sub && !downloaded){ sub.textContent = "This takes a few seconds per page."; downloaded = true; }
+      if (pct) pct.textContent = p + "%";
+      if (fill) fill.style.width = p + "%";
+    } else if (pct && p === 0){
+      pct.textContent = "…";
+    }
+  }).then(function(text){
+    if (S.page !== pageNo) return;
+    showPageText(text);
+    setTimeout(function(){ clearNotice("scan"); }, 4000);
+    ocrAhead(pageNo);
+  }).catch(function(err){
+    console.error("ocr failed", err);
+    if (S.page !== pageNo) return;
+    el.leaf.innerHTML = '<div class="empty"><span class="dev">पढ़ा नहीं जा सका।</span>' +
+      'The text on this page could not be recognised. Check your connection and try again.' +
+      '<div class="sub">' + escapeHtml(err && err.message ? err.message : "unknown error") + '</div></div>';
+  });
+}
+
+/* ------------------------------------------------------------------ *
  * Rendering a page
  * ------------------------------------------------------------------ */
 function escapeHtml(s){
@@ -781,28 +1040,47 @@ function escapeHtml(s){
   });
 }
 
+function showPageText(t, startIdx){
+  var parsed = sentencesOf(t);
+  S.sentences = parsed.list;
+  S.paras = parsed.paras;
+  S.idx = Math.min(startIdx || 0, Math.max(0, S.sentences.length - 1));
+  el.phOcr.classList.toggle("hidden", !S.ocrPages[S.page]);
+  renderLeaf();
+  updateProgress();
+  savePos();
+}
+
 function gotoPage(n, startIdx){
   if (n < 1 || n > S.numPages) return Promise.resolve();
   S.page = n;
   el.phNum.textContent = n;
   el.pnum.textContent = n + " / " + S.numPages;
   el.leaf.textContent = "";
+  el.phOcr.classList.add("hidden");
   return textOf(n).then(function(t){
-    var parsed = sentencesOf(t);
-    S.sentences = parsed.list;
-    S.paras = parsed.paras;
-    S.idx = Math.min(startIdx || 0, Math.max(0, S.sentences.length - 1));
-    renderLeaf();
-    updateProgress();
-    savePos();
-    if (n < S.numPages) textOf(n + 1); // warm the next page
+    var noText = t.replace(/\s/g, "").length < 20;
+    if (noText && !S.ocrPages[n] && ocrAvailable() && S.ocrOn){
+      S.sentences = []; S.paras = []; S.idx = 0;
+      updateProgress(); savePos();
+      return startOcr(n);
+    }
+    showPageText(t, startIdx);
+    if (n < S.numPages) textOf(n + 1);   // warm the next page
+    ocrAhead(n);
   });
 }
 
 function renderLeaf(){
   if (!S.sentences.length){
+    var offer = (ocrAvailable() && !S.ocrOn)
+      ? '<button class="btn ghost" id="btnOcrNow">Read this page with OCR</button>'
+      : "";
     el.leaf.innerHTML = '<div class="empty"><span class="dev">इस पेज पर कोई टेक्स्ट नहीं मिला।</span>' +
-      'Nothing to read on this page. It may be an image, a chart, or a blank page.</div>';
+      'Nothing to read on this page. It may be a scan, an image, or a blank page.' +
+      offer + "</div>";
+    var b = document.getElementById("btnOcrNow");
+    if (b) b.onclick = function(){ startOcr(S.page); };
     return;
   }
   var html = "", last = null;
@@ -1157,6 +1435,16 @@ toggle(el.swWake, "wake", function(on){
   S.wakeOn = on;
   if (on && S.playing) requestWake(); else releaseWake();
 });
+toggle(el.swOcr, "ocr", function(on){
+  S.ocrOn = on;
+  if (on && S.pdf && !S.sentences.length) startOcr(S.page);
+});
+toggle(el.swOcrEng, "ocreng", function(on){
+  S.ocrEng = on;
+  var wasOcr = S.pdf && S.ocrPages[S.page];
+  resetOcr();
+  if (wasOcr && S.ocrOn) startOcr(S.page);
+});
 
 function openSheet(){
   refreshVoices();
@@ -1194,6 +1482,12 @@ setRate(S.rate); setPitch(S.pitch); setSize(S.size);
 el.swAuto.setAttribute("aria-pressed", S.autoPage ? "true" : "false");
 el.swWord.setAttribute("aria-pressed", S.wordHi ? "true" : "false");
 el.swWake.setAttribute("aria-pressed", S.wakeOn ? "true" : "false");
+el.swOcr.setAttribute("aria-pressed", S.ocrOn ? "true" : "false");
+el.swOcrEng.setAttribute("aria-pressed", S.ocrEng ? "true" : "false");
+if (!OCR_BASE){
+  $("rowOcr").classList.add("hidden");
+  $("rowOcrEng").classList.add("hidden");
+}
 setPlayIcon();
 
 if (!synth){
