@@ -16,7 +16,7 @@
 <meta name="theme-color" content="#EFEEE8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap">
 
 <style>
 :root{
@@ -76,9 +76,11 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
   backdrop-filter:saturate(1.4) blur(10px);
   border-bottom:1px solid var(--line);
 }
+/* The wordmark is the app icon, inline: same face, same two colours. */
 .mark{
-  font-family:var(--dev); font-weight:600; font-size:19px; line-height:1;
-  color:var(--accent); letter-spacing:.01em; flex:0 0 auto;
+  font-family:"Baloo 2",var(--dev); font-weight:800; font-size:16px; line-height:1;
+  color:#B8FF3C; background:#151233; letter-spacing:-.02em;
+  padding:6px 10px 8px; border-radius:9px; flex:0 0 auto;
 }
 .docname{
   flex:1 1 auto; min-width:0; font-size:13px; color:var(--ink-2);
