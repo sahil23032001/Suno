@@ -1,9 +1,97 @@
 <!doctype html>
 <html lang="hi">
 <head>
-<script defer src="https://analytics.open-domains.com/script.js" data-website-id="c1230abd-2a4d-4e58-8e8b-90a99a72f1ee"></script>
 <meta charset="utf-8">
-<meta name="description" content="Turn a Hindi or English PDF into an audiobook. Reads each page aloud in your device's own voice, highlighting the sentence being spoken.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suno Hindi Reader – Hindi PDF to Audiobook | Free Hindi Text-to-Speech</title>
+<meta name="description" content="Suno turns any Hindi or English PDF into an audiobook, free. Listen to Hindi PDFs read aloud on your Android phone with sentence highlighting, OCR for scanned books, and nothing uploaded. अपनी हिंदी PDF सुनिए, पढ़िए नहीं।">
+<meta name="keywords" content="Hindi PDF reader, Hindi text to speech, PDF to audiobook, हिंदी PDF रीडर, PDF सुनो, हिंदी टेक्स्ट टू स्पीच, Hindi audiobook app, read PDF aloud in Hindi, Hindi TTS, Devanagari text to speech, listen to PDF, OCR Hindi PDF, scanned Hindi book reader, free PDF reader Android, offline PDF reader">
+<meta name="author" content="Suno">
+<meta name="application-name" content="Suno">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="googlebot" content="index, follow">
+<link rel="canonical" href="https://sunoo.is-local.org/">
+<link rel="alternate" hreflang="hi" href="https://sunoo.is-local.org/">
+<link rel="alternate" hreflang="en" href="https://sunoo.is-local.org/">
+<link rel="alternate" hreflang="x-default" href="https://sunoo.is-local.org/">
+<!-- Open Graph (WhatsApp, Facebook, LinkedIn previews) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Suno Hindi Reader">
+<meta property="og:url" content="https://sunoo.is-local.org/">
+<meta property="og:title" content="Suno – Turn any Hindi PDF into an audiobook">
+<meta property="og:description" content="Free Hindi and English PDF reader that reads every page aloud on your phone, highlighting each sentence. Works with scanned books too. Nothing is uploaded.">
+<meta property="og:image" content="https://sunoo.is-local.org/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Suno Hindi Reader – Hindi PDF to audiobook">
+<meta property="og:locale" content="hi_IN">
+<meta property="og:locale:alternate" content="en_IN">
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Suno – Turn any Hindi PDF into an audiobook">
+<meta name="twitter:description" content="Free Hindi and English PDF reader that reads every page aloud on your phone, highlighting each sentence. Works with scanned books too.">
+<meta name="twitter:image" content="https://sunoo.is-local.org/og-image.png">
+<meta name="twitter:image:alt" content="Suno Hindi Reader – Hindi PDF to audiobook">
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Suno Hindi Reader",
+  "alternateName": ["Suno", "सुनो"],
+  "url": "https://sunoo.is-local.org/",
+  "description": "Turn a Hindi or English PDF into an audiobook. Reads each page aloud in your device's own voice, highlighting the sentence being spoken. Recognises text on scanned pages with OCR. Files never leave your phone.",
+  "applicationCategory": "UtilitiesApplication",
+  "applicationSubCategory": "PDF reader, Text-to-speech",
+  "operatingSystem": "Android, Chrome OS, Windows, macOS, Linux",
+  "browserRequirements": "Requires a browser with Web Speech API support, such as Chrome",
+  "inLanguage": ["hi", "en"],
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+  "featureList": [
+    "Reads Hindi and English PDFs aloud with the device's text-to-speech voice",
+    "Highlights the sentence and word being spoken",
+    "Switches between Hindi and English voices sentence by sentence",
+    "OCR for scanned PDFs in Hindi and English",
+    "Remembers where you stopped in each document",
+    "Adjustable speed, pitch and text size",
+    "Installable as a home-screen app",
+    "Works entirely on the device; nothing is uploaded"
+  ],
+  "image": "https://sunoo.is-local.org/icon-192.png",
+  "screenshot": "https://sunoo.is-local.org/og-image.png",
+  "author": { "@type": "Organization", "name": "Suno" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I listen to a Hindi PDF as an audiobook?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Open Suno in Chrome on your Android phone, tap Choose a PDF and pick the file. Suno reads each page aloud in your phone's Hindi voice and highlights the sentence being spoken." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Suno work with scanned Hindi PDFs?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. When a PDF has no text layer, Suno recognises the text on each page image with OCR (Hindi, English, or both). The recognition model downloads once, about 5 MB." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my PDF uploaded anywhere?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The PDF is read entirely on your device. Nothing is sent to a server." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does the Hindi sound wrong?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Your phone needs a Hindi text-to-speech voice. On Android, open Settings, search for Text-to-speech, choose Google Speech Services and install the Hindi voice data. Then reopen Suno's settings panel." }
+    }
+  ]
+}
+</script>
+<script defer src="https://analytics.open-domains.com/script.js" data-website-id="c1230abd-2a4d-4e58-8e8b-90a99a72f1ee"></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -12,13 +100,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Suno">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1218">
-<title>Suno Hindi Reader</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#EFEEE8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap">
-
 <style>
 :root{
   --paper:#EFEEE8; --surface:#F8F7F3; --surface-2:#E4E2D8; --raised:#FFFFFF;
@@ -56,7 +141,6 @@
   --ok:#7FC4A0;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
 }
-
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--paper); color:var(--ink);
@@ -65,9 +149,7 @@ body{
 }
 button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
-
 .app{display:flex; flex-direction:column; min-height:100vh; min-height:100dvh}
-
 /* ---------- top bar ---------- */
 .bar{
   position:sticky; top:0; z-index:20;
@@ -94,7 +176,6 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
 }
 .iconbtn:hover{background:var(--surface-2); color:var(--ink)}
 .iconbtn svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
-
 /* ---------- start screen ---------- */
 .start{
   flex:1; display:flex; flex-direction:column; justify-content:center;
@@ -135,7 +216,6 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
   border:1px solid var(--line-2); border-radius:5px;
   padding:1px 5px; flex:0 0 auto; margin-top:1px;
 }
-
 /* ---------- notices ---------- */
 .notice{
   margin:0 14px 12px; padding:11px 13px; border-radius:11px;
@@ -152,7 +232,6 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
   font:inherit; font-weight:600; padding:0; white-space:nowrap;
 }
 .notice .x{margin-left:auto; flex:0 0 auto; color:var(--ink-3); font-size:18px; line-height:1; padding:0 2px}
-
 /* ---------- reader ---------- */
 .reader{flex:1; width:100%; max-width:720px; margin:0 auto; padding:6px 14px 200px}
 .pagehead{
@@ -166,7 +245,6 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
 .pagehead .num{font-family:var(--mono); font-size:13px; color:var(--ink-2); font-variant-numeric:tabular-nums}
 .pagehead .spacer{flex:1}
 .pagehead .count{font-family:var(--mono); font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
-
 .leaf{font-family:var(--dev); font-size:var(--tsize,20px); line-height:2.0; margin:0}
 .para{margin:0 0 1.15em}
 .para:last-child{margin-bottom:0}
@@ -202,7 +280,6 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
   color:var(--accent-ink); background:var(--accent-soft); border-radius:5px; padding:2px 6px;
 }
 .ahead{font-family:var(--mono); font-size:10.5px; color:var(--ink-3); font-variant-numeric:tabular-nums}
-
 /* ---------- player ---------- */
 .player{
   position:fixed; left:0; right:0; bottom:0; z-index:30;
@@ -246,7 +323,6 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
 }
 .chip:hover{border-color:var(--ink-3); color:var(--ink)}
 .chip.live{color:var(--accent-ink); border-color:var(--accent); background:var(--accent-soft)}
-
 /* ---------- sheet ---------- */
 .scrim{position:fixed; inset:0; background:rgba(10,12,16,.42); z-index:40; opacity:0; pointer-events:none; transition:opacity .18s}
 .scrim.open{opacity:1; pointer-events:auto}
@@ -314,7 +390,6 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
 .help ol{margin:8px 0 0; padding-left:20px}
 .help li{margin-bottom:5px}
 .help b{color:var(--ink)}
-
 @media (prefers-reduced-motion: reduce){
   *{transition:none !important; animation:none !important}
 }
@@ -326,6 +401,9 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
 </style>
 </head>
 <body>
+<noscript>
+  <p>Suno Hindi Reader turns a Hindi or English PDF into an audiobook, reading each page aloud on your phone with the sentence being spoken highlighted. It needs JavaScript to run. Please enable JavaScript and open this page in Chrome on Android.</p>
+</noscript>
 <div class="app">
   <header class="bar">
     <div class="mark">सुनो</div>
@@ -337,16 +415,13 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </header>
-
   <div id="notices"></div>
-
   <!-- start screen -->
   <section class="start" id="start">
     <div>
       <h1 class="hero-dev">अपनी हिंदी PDF को <span class="lit">सुनिए</span>, पढ़िए नहीं।</h1>
       <p class="hero-sub">Open a PDF and it becomes an audiobook. Your phone reads each page aloud while the sentence being spoken stays highlighted — in Hindi, in English, or switching between them sentence by sentence.</p>
     </div>
-
     <div class="dropzone" id="drop">
       <button class="btn" id="btnPick">
         <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -354,14 +429,12 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
       </button>
       <div class="hint">The file is read on your phone. Nothing is uploaded anywhere.</div>
     </div>
-
     <ul class="facts">
       <li><span class="n">1</span><span><b>Text PDFs only.</b> Works with documents that were generated by a computer. A scan or a photo of paper has no text to read.</span></li>
       <li><span class="n">2</span><span><b>Needs a Hindi voice.</b> Android ships an English one already. For Hindi: Settings &rarr; General management &rarr; Text-to-speech &rarr; install Hindi under Google Speech Services. Tap the gear above to check what you have.</span></li>
       <li><span class="n">3</span><span><b>Add to home screen.</b> Chrome menu &rarr; Add to Home screen, and it opens like a normal app.</span></li>
     </ul>
   </section>
-
   <!-- reader -->
   <main class="reader hidden" id="reader">
     <div class="pagehead">
@@ -374,7 +447,6 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
     </div>
     <div id="leaf" class="leaf"></div>
   </main>
-
   <!-- player -->
   <div class="player hidden" id="player">
     <div class="track"><i id="prog"></i></div>
@@ -408,24 +480,20 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
     </div>
   </div>
 </div>
-
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-label="Settings">
   <div class="grab"></div>
-
   <h2>Voice</h2>
   <div class="field">
     <div class="top"><label for="selVoice">Hindi voice</label></div>
     <select id="selVoice"></select>
     <div class="sub" id="voiceSub"></div>
   </div>
-
   <div class="field">
     <div class="top"><label for="selVoiceEn">English voice</label></div>
     <select id="selVoiceEn"></select>
     <div class="sub">Used automatically for sentences written in English.</div>
   </div>
-
   <div class="field">
     <div class="top"><label for="rngRate">Speed</label><span class="val" id="valRate">1.00&times;</span></div>
     <input type="range" id="rngRate" min="0.5" max="2" step="0.05" value="1">
@@ -434,7 +502,6 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
     <div class="top"><label for="rngPitch">Pitch</label><span class="val" id="valPitch">1.00</span></div>
     <input type="range" id="rngPitch" min="0.5" max="1.5" step="0.05" value="1">
   </div>
-
   <h2>Reading</h2>
   <div class="field">
     <div class="top"><label for="rngSize">Text size</label><span class="val" id="valSize">20 px</span></div>
@@ -465,7 +532,6 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
     </select>
     <div class="sub">Both together reads mixed pages, but makes some Hindi words worse.</div>
   </div>
-
   <h2>No Hindi voice?</h2>
   <div class="help">
     Android reads Hindi through Google Speech Services. If the list above has no Hindi voice:
@@ -475,23 +541,18 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border-radius:50%; 
       <li>Come back here and reopen this panel.</li>
     </ol>
   </div>
-
   <div class="sheetbtns">
     <button class="btn ghost" id="btnTest">Test voice</button>
     <button class="btn" id="btnClose">Done</button>
   </div>
 </div>
-
 <input type="file" id="file" accept="application/pdf,.pdf" class="sr">
-
 <script src="pdf.min.js"></script>
 <script>
 (function(){
 "use strict";
-
 /* pdf.js does its parsing in a worker; it is served next to this page. */
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
-
 /* ------------------------------------------------------------------ *
  * State
  * ------------------------------------------------------------------ */
@@ -520,7 +581,6 @@ var S = {
   ocrLang: "hin",     // hin | eng | hin+eng
   ocrPages: {}        // pages whose text came from OCR
 };
-
 var $ = function(id){ return document.getElementById(id); };
 var el = {
   start:$("start"), reader:$("reader"), player:$("player"), leaf:$("leaf"),
@@ -533,7 +593,6 @@ var el = {
   swAuto:$("swAuto"), swWord:$("swWord"), swWake:$("swWake"), swOcr:$("swOcr"), selVoiceEn:$("selVoiceEn"), selOcrLang:$("selOcrLang"),
   chipRate:$("chipRate"), btnLib:$("btnLib")
 };
-
 /* ------------------------------------------------------------------ *
  * Settings persistence (per-viewer convenience only)
  * ------------------------------------------------------------------ */
@@ -563,7 +622,6 @@ function savePrefs(){
   if (S.voice) store("suno.voice", S.voice.voiceURI);
   if (S.voiceEn) store("suno.voiceen", S.voiceEn.voiceURI);
 }
-
 /* ------------------------------------------------------------------ *
  * Notices
  * ------------------------------------------------------------------ */
@@ -581,14 +639,12 @@ function clearNotice(id){
   var n = document.getElementById("nt-" + id);
   if (n) n.remove();
 }
-
 /* ------------------------------------------------------------------ *
  * Text extraction + Hindi sentence splitting
  * ------------------------------------------------------------------ */
 var CTRL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/g;
 var COMBINING = /^[\u0900-\u0903\u093A-\u094F\u0951-\u0957\u0962\u0963\u200C\u200D]/;
 var PARA = "\u0001";
-
 // The 30th percentile of the line gaps is the ordinary line step even on a
 // short page where half the gaps happen to be paragraph gaps.
 function lineStep(a){
@@ -596,7 +652,6 @@ function lineStep(a){
   var b = a.slice().sort(function(x, y){ return x - y; });
   return b[Math.floor(b.length * 0.3)];
 }
-
 // Rebuild lines from the text layer. Devanagari conjuncts are often split
 // across several text items, so a space is only inserted when the gap is
 // wide relative to the type size and the break is not inside a cluster.
@@ -606,7 +661,6 @@ function extractText(tc){
     if (typeof raw[i].str === "string" && raw[i].transform) items.push(raw[i]);
   }
   if (!items.length) return "";
-
   var lines = [], cur = null, prevY = null;
   for (i = 0; i < items.length; i++){
     var it = items[i], y = it.transform[5], x = it.transform[4];
@@ -626,7 +680,6 @@ function extractText(tc){
     if (size > cur.size) cur.size = size;
     prevY = y;
   }
-
   // A vertical gap noticeably bigger than the usual line step is a
   // paragraph break; anything smaller is just a wrapped line.
   var gaps = [];
@@ -650,12 +703,10 @@ function extractText(tc){
   }
   return out;
 }
-
 function tidy(raw){
   var bad = (raw.match(CTRL) || []).length;
   S.badChars += bad;
   S.allChars += raw.length;
-
   var t = raw.replace(CTRL, "").replace(/\r/g, "");
   t = t.replace(/[^\S\n]+/g, " ");            // collapse spaces, keep newlines
   t = t.replace(/ *\n *\n[\s\n]*/g, PARA);    // blank line = paragraph break
@@ -667,9 +718,7 @@ function tidy(raw){
   t = t.replace(/ {2,}/g, " ");
   return t.trim();
 }
-
 var MAXLEN = 220;
-
 function splitLong(s){
   if (s.length <= MAXLEN) return [s];
   var parts = [], rest = s;
@@ -689,7 +738,6 @@ function splitLong(s){
   if (rest) parts.push(rest);
   return parts.filter(Boolean);
 }
-
 function sentencesOf(text){
   var out = [], paras = [];
   if (!text) return { list: out, paras: paras };
@@ -709,7 +757,6 @@ function sentencesOf(text){
   }
   return { list: out, paras: paras };
 }
-
 // Which script is this written in? Used to pick a voice per sentence.
 function scriptOf(text){
   var dev = (text.match(/[ऀ-ॿ]/g) || []).length;
@@ -717,14 +764,12 @@ function scriptOf(text){
   if (!dev && !lat) return null;
   return dev >= lat ? "hi" : "en";
 }
-
 function devScore(t){
   if (!t) return 0;
   var dev = (t.match(/[ऀ-ॿ]/g) || []).length;
   var letters = (t.match(/[^\s\d\p{P}]/gu) || []).length;
   return letters ? dev / letters : 0;
 }
-
 /* ------------------------------------------------------------------ *
  * Loading a PDF
  * ------------------------------------------------------------------ */
@@ -745,7 +790,6 @@ function openFile(f){
   };
   fr.readAsArrayBuffer(f);
 }
-
 function loadBuffer(data, name, size){
   notice("load", "<span>Opening <b>" + escapeHtml(name) + "</b>&hellip;</span>");
   pdfjsLib.getDocument({
@@ -766,7 +810,6 @@ function loadBuffer(data, name, size){
     el.player.classList.remove("hidden");
     el.btnLib.classList.remove("hidden");
     el.phCount.textContent = S.numPages + " pages";
-
     var saved = store(S.key);
     var startPage = 1, startIdx = 0;
     if (saved){
@@ -798,7 +841,6 @@ function loadBuffer(data, name, size){
     notice("err", msg, "warn");
   });
 }
-
 function checkQuality(){
   // Look at the first few pages to tell a scan apart from a text PDF.
   var pages = [], p;
@@ -840,7 +882,6 @@ function checkQuality(){
     }
   });
 }
-
 function textOf(pageNo){
   if (S.cache[pageNo] !== undefined) return Promise.resolve(S.cache[pageNo]);
   return S.pdf.getPage(pageNo).then(function(page){
@@ -855,7 +896,6 @@ function textOf(pageNo){
     return "";
   });
 }
-
 /* ------------------------------------------------------------------ *
  * OCR for scanned pages
  *
@@ -869,7 +909,6 @@ var OCR_BASE = "tess/";
 var OCR_AHEAD = 3;              // pages kept recognised ahead of you
 var OCR_WIDTH = 1400;           // wider than this costs time and buys nothing
 var OCR_MIN_CONFIDENCE = 40;    // below this a "line" is a rule or a smudge
-
 // Tesseract can also emit hOCR, TSV, box files and debug images. None of
 // them are used here.
 var OCR_OUTPUT = {
@@ -877,12 +916,9 @@ var OCR_OUTPUT = {
   hocr: false, tsv: false, box: false, unlv: false, osd: false, pdf: false,
   imageColor: false, imageGrey: false, imageBinary: false, debug: false
 };
-
 var OCR = { worker: null, loading: null, failed: false, jobs: {} };
 var Q = { list: [], busy: false, current: 0 };
-
 function ocrAvailable(){ return !!OCR_BASE && !OCR.failed; }
-
 function loadScript(src){
   return new Promise(function(resolve, reject){
     var t = document.createElement("script");
@@ -892,7 +928,6 @@ function loadScript(src){
     document.head.appendChild(t);
   });
 }
-
 function ocrWorker(){
   if (OCR.worker) return Promise.resolve(OCR.worker);
   if (OCR.loading) return OCR.loading;
@@ -924,9 +959,7 @@ function ocrWorker(){
     });
   return OCR.loading;
 }
-
 /* ---------------- storing what has already been recognised ---------- */
-
 function ocrKey(pageNo){
   return S.key ? S.key.replace("suno.pos.", "suno.ocr.") + "." + pageNo : null;
 }
@@ -954,7 +987,6 @@ function forgetStoredOcr(){
     for (i = 0; i < doomed.length; i++) localStorage.removeItem(doomed[i]);
   } catch (e) {}
 }
-
 // Pull anything recognised in an earlier session back into memory.
 function adoptStoredOcr(pageNo){
   if (S.ocrPages[pageNo]) return true;
@@ -964,9 +996,7 @@ function adoptStoredOcr(pageNo){
   S.ocrPages[pageNo] = true;
   return true;
 }
-
 /* ---------------- rendering and recognising one page ---------------- */
-
 function pageToCanvas(pageNo){
   return S.pdf.getPage(pageNo).then(function(page){
     var base = page.getViewport({ scale: 1 });
@@ -982,7 +1012,6 @@ function pageToCanvas(pageNo){
       .then(function(){ return canvas; });
   });
 }
-
 function recognisePage(pageNo){
   return ocrWorker().then(function(w){
     return pageToCanvas(pageNo).then(function(canvas){
@@ -996,21 +1025,17 @@ function recognisePage(pageNo){
     return text;
   });
 }
-
 /* ---------------- the queue ----------------------------------------- */
-
 // The page you are looking at always jumps the queue; after that the
 // nearest page ahead of you wins.
 function rank(pageNo){
   if (pageNo === S.page) return -1;
   return pageNo > S.page ? (pageNo - S.page) : (1000 + (S.page - pageNo));
 }
-
 function queueOcr(pageNo){
   if (!ocrAvailable() || pageNo < 1 || pageNo > S.numPages) return Promise.resolve(null);
   if (adoptStoredOcr(pageNo)) return Promise.resolve(S.cache[pageNo]);
   if (OCR.jobs[pageNo]) return OCR.jobs[pageNo].promise;
-
   var job = {};
   job.promise = new Promise(function(resolve, reject){
     job.resolve = resolve;
@@ -1021,14 +1046,12 @@ function queueOcr(pageNo){
   pump();
   return job.promise;
 }
-
 function pump(){
   if (Q.busy || !Q.list.length) return;
   Q.list.sort(function(a, b){ return rank(a) - rank(b); });
   var pageNo = Q.list.shift();
   var job = OCR.jobs[pageNo];
   if (!job){ pump(); return; }
-
   Q.busy = true;
   Q.current = pageNo;
   recognisePage(pageNo).then(function(text){
@@ -1044,7 +1067,6 @@ function pump(){
     pump();
   });
 }
-
 // Keep a few pages ready in front of you, so the only wait is the first.
 function ocrAhead(from){
   if (!ocrAvailable() || !S.ocrOn) return;
@@ -1060,7 +1082,6 @@ function ocrAhead(from){
     wanted++;
   }
 }
-
 function showAhead(){
   var ready = 0, n;
   for (n = S.page + 1; n <= S.numPages; n++){
@@ -1070,9 +1091,7 @@ function showAhead(){
   el.phAhead.textContent = ready ? "+" + ready + " ready" : "";
   el.phAhead.classList.toggle("hidden", !ready || !S.ocrPages[S.page]);
 }
-
 /* ---------------- cleaning up what Tesseract returns ----------------- */
-
 function ocrLines(data){
   if (!data) return "";
   var src = data.lines || [], keep = [], i;
@@ -1083,7 +1102,6 @@ function ocrLines(data){
     keep.push({ text: text, box: src[i].bbox });
   }
   if (!keep.length) return data.text || "";
-
   // Same rule as the text layer: a vertical gap wider than the usual line
   // step is a paragraph break, so headings do not run into the body text.
   var gaps = [];
@@ -1093,13 +1111,11 @@ function ocrLines(data){
     if (g > 0.5) gaps.push(g);
   }
   var step = lineStep(gaps);
-
   // A centred heading also gives itself away by starting far from the
   // left margin, which catches the cases where the gap alone is marginal.
   var right = 0;
   for (i = 0; i < keep.length; i++) if (keep[i].box) right = Math.max(right, keep[i].box.x1);
   var indentJump = right * 0.06;
-
   var out = keep[0].text;
   for (i = 1; i < keep.length; i++){
     var a = keep[i - 1].box, b = keep[i].box, gapBreak = false, indentBreak = false;
@@ -1112,7 +1128,6 @@ function ocrLines(data){
   }
   return out;
 }
-
 function tidyOcr(raw){
   var lines = String(raw || "").split("\n"), out = [], i;
   for (i = 0; i < lines.length; i++){
@@ -1130,9 +1145,7 @@ function tidyOcr(raw){
   }
   return tidy(out.join("\n"));
 }
-
 /* ---------------- what you see while it works ----------------------- */
-
 function ocrProgressUI(){
   el.leaf.innerHTML =
     '<div class="empty">' +
@@ -1143,7 +1156,6 @@ function ocrProgressUI(){
       'the next few are prepared in the background.</div>' +
     '</div>';
 }
-
 function onOcrProgress(m){
   if (!m || Q.current !== S.page) return;
   var pct = document.getElementById("ocrPct");
@@ -1159,7 +1171,6 @@ function onOcrProgress(m){
     if (sub && !OCR.worker) sub.textContent = "First time only: downloading the Hindi recognition model, about 5 MB.";
   }
 }
-
 function startOcr(pageNo){
   ocrProgressUI();
   ocrAhead(pageNo);
@@ -1175,7 +1186,6 @@ function startOcr(pageNo){
       '<div class="sub">' + escapeHtml(err && err.message ? err.message : "unknown error") + '</div></div>';
   });
 }
-
 function resetOcr(){
   var w = OCR.worker;
   OCR.worker = null; OCR.loading = null; OCR.jobs = {}; OCR.failed = false;
@@ -1185,7 +1195,6 @@ function resetOcr(){
   forgetStoredOcr();
   if (w && w.terminate) { try { w.terminate(); } catch (e) {} }
 }
-
 /* ------------------------------------------------------------------ *
  * Rendering a page
  * ------------------------------------------------------------------ */
@@ -1194,7 +1203,6 @@ function escapeHtml(s){
     return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
   });
 }
-
 function showPageText(t, startIdx){
   var parsed = sentencesOf(t);
   S.sentences = parsed.list;
@@ -1206,7 +1214,6 @@ function showPageText(t, startIdx){
   savePos();
   showAhead();
 }
-
 function gotoPage(n, startIdx){
   if (n < 1 || n > S.numPages) return Promise.resolve();
   S.page = n;
@@ -1234,7 +1241,6 @@ function gotoPage(n, startIdx){
     ocrAhead(n);
   });
 }
-
 function renderLeaf(){
   if (!S.sentences.length){
     var offer = (ocrAvailable() && !S.ocrOn)
@@ -1261,7 +1267,6 @@ function renderLeaf(){
   el.leaf.innerHTML = html;
   markActive(false);
 }
-
 function markActive(scroll){
   var nodes = el.leaf.querySelectorAll(".sent");
   for (var i = 0; i < nodes.length; i++){
@@ -1280,7 +1285,6 @@ function markActive(scroll){
     }
   }
 }
-
 // Break the active sentence into word spans so the boundary event can
 // light up one word at a time.
 function splitWords(i){
@@ -1298,7 +1302,6 @@ function splitWords(i){
   node.dataset.split = "1";
   return node;
 }
-
 function lightWord(node, charIndex){
   if (!node) return;
   var ws = node.querySelectorAll(".w");
@@ -1307,14 +1310,12 @@ function lightWord(node, charIndex){
     ws[i].classList.toggle("on", charIndex >= s && charIndex < e);
   }
 }
-
 function updateButtons(){
   $("btnPrevP").disabled = S.page <= 1;
   $("btnNextP").disabled = S.page >= S.numPages;
   $("btnPrevS").disabled = S.idx <= 0;
   $("btnNextS").disabled = S.idx >= S.sentences.length - 1;
 }
-
 function updateProgress(){
   var pct = 0;
   if (S.numPages){
@@ -1324,22 +1325,18 @@ function updateProgress(){
   el.prog.style.width = Math.max(0, Math.min(100, pct)) + "%";
   updateButtons();
 }
-
 function savePos(){
   // A page we could not read is not a place to come back to.
   if (S.key && S.sentences.length) store(S.key, S.page + ":" + S.idx);
 }
-
 function clearPos(){
   if (!S.key) return;
   try { localStorage.removeItem(S.key); } catch (e) {}
 }
-
 /* ------------------------------------------------------------------ *
  * Speech
  * ------------------------------------------------------------------ */
 var synth = window.speechSynthesis;
-
 function fillVoiceSelect(sel, list, chosen){
   var html = '<option value="">Let the device choose</option>', j;
   for (j = 0; j < list.length; j++){
@@ -1349,13 +1346,11 @@ function fillVoiceSelect(sel, list, chosen){
   }
   sel.innerHTML = html;
 }
-
 function pickVoice(list, storedURI){
   var i;
   if (storedURI) for (i = 0; i < list.length; i++) if (list[i].voiceURI === storedURI) return list[i];
   return list.length ? list[0] : null;
 }
-
 function refreshVoices(){
   if (!synth) return;
   var all = synth.getVoices() || [], hi = [], en = [], rest = [], i;
@@ -1370,19 +1365,15 @@ function refreshVoices(){
   en.sort(function(a, b){
     return (/en[-_]IN/i.test(b.lang) ? 1 : 0) - (/en[-_]IN/i.test(a.lang) ? 1 : 0);
   });
-
   S.voices = hi.concat(rest);
   S.voicesEn = en;
   S.voice = pickVoice(S.voices, store("suno.voice"));
   S.voiceEn = pickVoice(en, store("suno.voiceen"));
-
   fillVoiceSelect(el.selVoice, S.voices, S.voice);
   fillVoiceSelect(el.selVoiceEn, S.voicesEn, S.voiceEn);
-
   el.voiceSub.textContent = hi.length
     ? hi.length + (hi.length === 1 ? " Hindi voice found on this device." : " Hindi voices found on this device.")
     : "No Hindi voice found on this device. See the steps below.";
-
   // Only nag about a missing Hindi voice on a document that needs one.
   if (!hi.length && all.length && S.docScript !== "en"){
     notice("novoice",
@@ -1392,13 +1383,10 @@ function refreshVoices(){
     clearNotice("novoice");
   }
 }
-
-
 if (synth){
   refreshVoices();
   synth.addEventListener("voiceschanged", refreshVoices);
 }
-
 var keepAlive = null;
 function startKeepAlive(){
   stopKeepAlive();
@@ -1409,27 +1397,22 @@ function startKeepAlive(){
   }, 9000);
 }
 function stopKeepAlive(){ if (keepAlive){ clearInterval(keepAlive); keepAlive = null; } }
-
 function speakCurrent(){
   if (!synth || !S.sentences.length) return;
   var text = S.sentences[S.idx];
   if (!text){ advance(); return; }
-
   S.stopping = true;
   synth.cancel();
   S.stopping = false;
-
   // Each sentence gets the voice for the script it is written in, so a
   // mixed document does not read English with a Hindi voice or the reverse.
   var script = scriptOf(text) || S.docScript || "hi";
   var voice = (script === "en") ? (S.voiceEn || S.voice) : (S.voice || S.voiceEn);
-
   var u = new SpeechSynthesisUtterance(text);
   u.voice = voice || null;
   u.lang = voice ? voice.lang : (script === "en" ? "en-IN" : "hi-IN");
   u.rate = S.rate;
   u.pitch = S.pitch;
-
   var node = null;
   markActive(true);
   if (S.wordHi){
@@ -1453,7 +1436,6 @@ function speakCurrent(){
   // A tiny delay lets cancel() settle on Android before the next utterance.
   setTimeout(function(){ if (S.playing) synth.speak(u); }, 60);
 }
-
 function advance(){
   if (!S.playing) return;
   if (S.idx < S.sentences.length - 1){
@@ -1492,7 +1474,6 @@ function advance(){
     notice("done", "<span>Finished the last page. Next time this document opens at the start.</span>");
   }
 }
-
 function play(){
   if (!S.sentences.length){
     if (S.autoPage && S.page < S.numPages){ S.playing = true; setPlayIcon(); advance(); }
@@ -1505,7 +1486,6 @@ function play(){
   requestWake();
   speakCurrent();
 }
-
 function pause(){
   S.playing = false;
   S.stopping = true;
@@ -1517,22 +1497,18 @@ function pause(){
   var cur = el.leaf.querySelector(".sent.on");
   if (cur) lightWord(cur, -1);
 }
-
 function stop(){ pause(); }
-
 function setPlayIcon(){
   el.icoPlay.classList.toggle("hidden", S.playing);
   el.icoPause.classList.toggle("hidden", !S.playing);
   el.play.setAttribute("aria-label", S.playing ? "Pause" : "Play");
 }
-
 function jump(i){
   if (i < 0 || i >= S.sentences.length) return;
   S.idx = i;
   updateProgress(); savePos();
   if (S.playing) speakCurrent(); else markActive(true);
 }
-
 /* ------------------------------------------------------------------ *
  * Wake lock
  * ------------------------------------------------------------------ */
@@ -1549,7 +1525,6 @@ function releaseWake(){
 document.addEventListener("visibilitychange", function(){
   if (document.visibilityState === "visible" && S.playing) requestWake();
 });
-
 /* ------------------------------------------------------------------ *
  * Wiring
  * ------------------------------------------------------------------ */
@@ -1561,7 +1536,6 @@ el.file.onchange = function(){
   openFile(f);
   el.file.value = "";
 };
-
 ["dragenter","dragover"].forEach(function(ev){
   el.drop.addEventListener(ev, function(e){ e.preventDefault(); el.drop.classList.add("over"); });
 });
@@ -1571,7 +1545,6 @@ el.file.onchange = function(){
 el.drop.addEventListener("drop", function(e){
   if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) openFile(e.dataTransfer.files[0]);
 });
-
 el.play.onclick = function(){ S.playing ? pause() : play(); };
 $("btnPrevS").onclick = function(){ jump(S.idx - 1); };
 $("btnNextS").onclick = function(){ jump(S.idx + 1); };
@@ -1587,7 +1560,6 @@ el.leaf.addEventListener("click", function(e){
   var t = e.target.closest ? e.target.closest(".sent") : null;
   if (t) jump(+t.dataset.i);
 });
-
 var RATES = [0.75, 0.9, 1, 1.15, 1.3, 1.5, 1.75];
 el.chipRate.onclick = function(){
   var i = 0, best = 0, diff = 9;
@@ -1598,7 +1570,6 @@ el.chipRate.onclick = function(){
   setRate(RATES[(best + 1) % RATES.length]);
   if (S.playing) speakCurrent();
 };
-
 function setRate(r){
   S.rate = r;
   el.rngRate.value = r;
@@ -1614,13 +1585,11 @@ function setSize(s){
   S.size = s; el.rngSize.value = s; el.valSize.textContent = s + " px";
   el.leaf.style.setProperty("--tsize", s + "px"); savePrefs();
 }
-
 el.rngRate.oninput = function(){ setRate(parseFloat(this.value)); };
 el.rngRate.onchange = function(){ if (S.playing) speakCurrent(); };
 el.rngPitch.oninput = function(){ setPitch(parseFloat(this.value)); };
 el.rngPitch.onchange = function(){ if (S.playing) speakCurrent(); };
 el.rngSize.oninput = function(){ setSize(parseInt(this.value, 10)); };
-
 el.selVoice.onchange = function(){
   var uri = this.value, i;
   S.voice = null;
@@ -1642,7 +1611,6 @@ el.selOcrLang.onchange = function(){
   resetOcr();
   if (wasOcr && S.ocrOn) startOcr(S.page);
 };
-
 function toggle(btn, key, apply){
   btn.onclick = function(){
     var on = btn.getAttribute("aria-pressed") !== "true";
@@ -1667,8 +1635,6 @@ toggle(el.swOcr, "ocr", function(on){
   S.ocrOn = on;
   if (on && S.pdf && !S.sentences.length) startOcr(S.page);
 });
-
-
 function openSheet(){
   refreshVoices();
   el.sheet.classList.add("open"); el.scrim.classList.add("open");
@@ -1695,7 +1661,6 @@ $("btnTest").onclick = function(){
     synth.speak(e);
   }
 };
-
 document.addEventListener("keydown", function(e){
   if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
   if (e.code === "Space"){ e.preventDefault(); S.playing ? pause() : play(); }
@@ -1703,9 +1668,7 @@ document.addEventListener("keydown", function(e){
   else if (e.key === "ArrowLeft") jump(S.idx - 1);
   else if (e.key === "Escape") closeSheet();
 });
-
 window.addEventListener("beforeunload", function(){ if (synth) synth.cancel(); });
-
 /* boot */
 loadPrefs();
 setRate(S.rate); setPitch(S.pitch); setSize(S.size);
@@ -1719,12 +1682,10 @@ if (!OCR_BASE){
   $("rowOcrEng").classList.add("hidden");
 }
 setPlayIcon();
-
 if (!synth){
   notice("nosynth",
     "<span><b>This browser cannot speak.</b> Open the app in Chrome on your Android phone.</span>", "warn");
 }
-
 window.__suno = S;   // for testing
 })();
 </script>
